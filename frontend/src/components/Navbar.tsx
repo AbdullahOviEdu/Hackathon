@@ -57,10 +57,13 @@ const Navbar = () => {
 
   const navLinks = [
     { href: '/', icon: handsPhone1, label: 'Home' },
-    { href: '#courses', icon: handsPhone2, label: 'Courses' },
-    { href: '#community', icon: handsPhone3, label: 'Community' },
-    { href: '#resources', icon: handsPhone4, label: 'Resources' }
+    { href: '/courses', icon: handsPhone2, label: 'Courses' },
+    { href: '/community', icon: handsPhone3, label: 'Community' },
+    { href: '/resources', icon: handsPhone4, label: 'Resources' }
   ];
+
+  // Set to false to show auth buttons
+  const isAuthenticated = false;
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -82,15 +85,30 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Right side with sign in */}
+          {/* Right side with auth buttons */}
           <div className="flex-1 flex justify-end">
-            <Link 
-              to="/signup"
-              className="hidden md:block relative px-6 py-2.5 bg-ninja-green text-ninja-black font-monument text-sm rounded-lg overflow-hidden group"
-            >
-              <span className="relative z-10 transition-colors group-hover:text-ninja-white">Sign Up</span>
-              <div className="absolute inset-0 bg-ninja-purple transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
-            </Link>
+            {isAuthenticated ? (
+              <button className="hidden md:flex items-center gap-2 px-4 py-2 text-ninja-white/60 hover:text-ninja-white transition-colors">
+                <span>🔔</span>
+                <span className="w-2 h-2 bg-ninja-green rounded-full" />
+              </button>
+            ) : (
+              <>
+                <Link 
+                  to="/signin"
+                  className="hidden md:block px-6 py-2.5 text-ninja-white/80 font-monument text-sm hover:text-ninja-white transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link 
+                  to="/signup"
+                  className="hidden md:block relative px-6 py-2.5 bg-ninja-green text-ninja-black font-monument text-sm rounded-lg overflow-hidden group"
+                >
+                  <span className="relative z-10 transition-colors group-hover:text-ninja-white">Sign Up</span>
+                  <div className="absolute inset-0 bg-ninja-purple transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -129,12 +147,22 @@ const Navbar = () => {
                   />
                 ))}
               </div>
-              <Link
-                to="/signup" 
-                className="mt-8 block w-full px-6 py-3 bg-gradient-to-r from-ninja-green to-ninja-purple text-ninja-black font-monument text-sm rounded-lg hover:from-ninja-purple hover:to-ninja-green transition-all duration-500 text-center"
-              >
-                Sign Up
-              </Link>
+              {!isAuthenticated && (
+                <div className="mt-6 grid grid-cols-2 gap-4">
+                  <Link
+                    to="/signin" 
+                    className="block w-full px-6 py-3 border border-ninja-white/10 text-ninja-white/80 font-monument text-sm rounded-lg hover:bg-white/5 transition-all duration-300 text-center"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/signup" 
+                    className="block w-full px-6 py-3 bg-gradient-to-r from-ninja-green to-ninja-purple text-ninja-black font-monument text-sm rounded-lg hover:from-ninja-purple hover:to-ninja-green transition-all duration-500 text-center"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>
