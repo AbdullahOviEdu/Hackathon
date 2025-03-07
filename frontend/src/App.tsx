@@ -8,12 +8,12 @@ import Settings from './pages/Settings';
 import Resources from './pages/Resources';
 import Courses from './pages/Courses';
 import Community from './pages/Community';
-import TeacherDashboard from './components/TeacherDashboard';
 import Messages from './pages/Messages';
 import Connections from './pages/Connections';
 import Meetings from './pages/Meetings';
 import Analytics from './pages/Analytics';
 import CourseDetails from './pages/CourseDetails';
+import StudentDashboard from './dashboard/StudentDashboard/StudentDashboard';
 
 const App = () => {
   return (
@@ -29,12 +29,12 @@ const App = () => {
         <Route path="/courses" element={<Courses />} />
         <Route path="/course/:id" element={<CourseDetails />} />
         <Route path="/community" element={<Community />} />
-        <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
-        <Route path="/teacher-dashboard/messages" element={<Messages />} />
-        <Route path="/teacher-dashboard/connections" element={<Connections />} />
-        <Route path="/teacher-dashboard/meetings" element={<Meetings />} />
-        <Route path="/teacher-dashboard/settings" element={<Settings />} />
-        <Route path="/teacher-dashboard/analytics" element={<Analytics />} />
+        <Route path="/student-dashboard" element={<StudentDashboard />} />
+        <Route path="/student-dashboard/messages" element={<Messages />} />
+        <Route path="/student-dashboard/connections" element={<Connections />} />
+        <Route path="/student-dashboard/meetings" element={<Meetings />} />
+        <Route path="/student-dashboard/settings" element={<Settings />} />
+        <Route path="/student-dashboard/analytics" element={<Analytics />} />
       </Routes>
     </Router>
   );

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { FiCalendar, FiUsers, FiBook, FiBell, FiSearch, FiMessageCircle, FiSettings, FiLogOut } from 'react-icons/fi';
-import Calendar from './Calendar';
-import { dashboardService } from '../services/dashboardService';
-import { Course, Activity, DashboardStats, CalendarEvent } from '../types/dashboard';
+import Calendar from '../../components/Calendar';
+import { dashboardService } from '../../services/dashboardService';
+import { Course, Activity, DashboardStats, CalendarEvent } from '../../types/dashboard';
 import { useNavigate } from 'react-router-dom';
 
-const TeacherDashboard: React.FC = () => {
+const StudentDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [, setStats] = useState<DashboardStats | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
@@ -134,7 +134,7 @@ const TeacherDashboard: React.FC = () => {
 
   const handleLogout = () => {
     localStorage.clear();
-    navigate('/signin');
+    navigate('/');
   };
 
   if (loading) {
@@ -149,37 +149,35 @@ const TeacherDashboard: React.FC = () => {
     <div className="flex h-screen bg-ninja-black">
       {/* Sidebar */}
       <div className="w-64 bg-ninja-black/95 border-r border-ninja-white/10">
-        <div className="p-6">
-          <h2 className="text-2xl font-monument text-ninja-white">OviEdu</h2>
-        </div>
+        
         <nav className="mt-6 space-y-2">
           <div className="px-6 py-3 bg-ninja-green/10 cursor-pointer flex items-center text-ninja-white">
             <FiBook className="mr-3" />
             <span className="font-monument text-sm">Dashboard</span>
           </div>
           <div 
-            onClick={() => handleNavigation('/teacher-dashboard/connections')}
+            onClick={() => handleNavigation('/student-dashboard/connections')}
             className="px-6 py-3 hover:bg-ninja-green/10 cursor-pointer flex items-center text-ninja-white/80 hover:text-ninja-white"
           >
             <FiUsers className="mr-3" />
             <span className="font-monument text-sm">Connections</span>
           </div>
           <div 
-            onClick={() => handleNavigation('/teacher-dashboard/messages')}
+            onClick={() => handleNavigation('/student-dashboard/messages')}
             className="px-6 py-3 hover:bg-ninja-green/10 cursor-pointer flex items-center text-ninja-white/80 hover:text-ninja-white"
           >
             <FiMessageCircle className="mr-3" />
             <span className="font-monument text-sm">Messages</span>
           </div>
           <div 
-            onClick={() => handleNavigation('/teacher-dashboard/meetings')}
+            onClick={() => handleNavigation('/student-dashboard/meetings')}
             className="px-6 py-3 hover:bg-ninja-green/10 cursor-pointer flex items-center text-ninja-white/80 hover:text-ninja-white"
           >
             <FiCalendar className="mr-3" />
             <span className="font-monument text-sm">Meetings</span>
           </div>
           <div 
-            onClick={() => handleNavigation('/teacher-dashboard/settings')}
+            onClick={() => handleNavigation('/student-dashboard/settings')}
             className="px-6 py-3 hover:bg-ninja-green/10 cursor-pointer flex items-center text-ninja-white/80 hover:text-ninja-white"
           >
             <FiSettings className="mr-3" />
@@ -190,7 +188,7 @@ const TeacherDashboard: React.FC = () => {
             className="mt-auto px-6 py-3 hover:bg-ninja-green/10 cursor-pointer flex items-center text-ninja-white/80 hover:text-ninja-white"
           >
             <FiLogOut className="mr-3" />
-            <span className="font-monument text-sm">Logout</span>
+            <span className="font-monument text-sm" onClick={handleLogout}>Logout</span>
           </div>
         </nav>
       </div>
@@ -417,4 +415,4 @@ const TeacherDashboard: React.FC = () => {
   );
 };
 
-export default TeacherDashboard; 
+export default StudentDashboard; 

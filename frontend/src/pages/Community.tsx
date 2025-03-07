@@ -2,58 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 
-interface DropdownOption {
-  value: string;
-  label: string;
-}
-
-interface CustomDropdownProps {
-  options: DropdownOption[];
-  value: string;
-  onChange: (value: string) => void;
-  className?: string;
-}
-
-const CustomDropdown = ({ options, value, onChange, className = '' }: CustomDropdownProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const selectedOption = options.find(opt => opt.value === value);
-
-  return (
-    <div className={`relative ${className}`}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-ninja-green/50 transition-all hover:bg-white/10 flex items-center justify-between gap-2"
-      >
-        <span className="truncate">{selectedOption?.label}</span>
-        <span className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} text-xs opacity-60`}>▼</span>
-      </button>
-      
-      {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-ninja-black/95 border border-white/10 rounded-lg shadow-xl backdrop-blur-xl overflow-hidden animate-fadeIn">
-          <div className="max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-            {options.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => {
-                  onChange(option.value);
-                  setIsOpen(false);
-                }}
-                className={`w-full px-4 py-2 text-left transition-colors hover:bg-white/10 ${
-                  option.value === value 
-                    ? 'bg-white/5 text-ninja-green font-medium' 
-                    : 'text-white/80'
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
 
 interface Post {
   id: number;

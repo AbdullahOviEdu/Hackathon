@@ -89,7 +89,7 @@ const Navbar = () => {
     { href: '/courses', icon: handsPhone2, label: 'Courses' },
     { href: '/community', icon: handsPhone3, label: 'Community' },
     { href: '/resources', icon: handsPhone4, label: 'Resources' },
-    { href: '/teacher-dashboard', icon: handsPhone1, label: 'Teacher Dashboard' }
+    { href: '/student-dashboard', icon: handsPhone1, label: 'Student Dashboard' }
   ];
 
   const signInOptions = [
