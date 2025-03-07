@@ -52,18 +52,18 @@ const TeacherCourses: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-ninja-green font-monument">Loading courses...</div>
+        <div className="text-ninja-green font-monument text-sm sm:text-base">Loading courses...</div>
       </div>
     );
   }
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-monument text-ninja-white">Your Courses</h1>
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-monument text-ninja-white">Your Courses</h1>
         <button
           onClick={handleAddCourse}
-          className="flex items-center px-4 py-2 bg-gradient-to-r from-ninja-purple to-ninja-green text-ninja-black font-monument text-sm rounded-lg hover:from-ninja-green hover:to-ninja-purple transition-all duration-500"
+          className="w-full sm:w-auto flex items-center justify-center px-4 py-2 bg-gradient-to-r from-ninja-purple to-ninja-green text-ninja-black font-monument text-sm rounded-lg hover:from-ninja-green hover:to-ninja-purple transition-all duration-500"
         >
           <FiPlus className="mr-2" />
           Add New Course
@@ -71,32 +71,32 @@ const TeacherCourses: React.FC = () => {
       </div>
 
       {courses.length === 0 ? (
-        <div className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg p-8 text-center">
-          <div className="text-ninja-white/60 mb-4">You haven't created any courses yet.</div>
+        <div className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg p-6 sm:p-8 text-center">
+          <div className="text-sm sm:text-base text-ninja-white/60 mb-4">You haven't created any courses yet.</div>
           <button
             onClick={handleAddCourse}
-            className="px-4 py-2 bg-ninja-green/10 text-ninja-green text-sm rounded-lg hover:bg-ninja-green hover:text-ninja-black transition-colors"
+            className="px-4 py-2 bg-ninja-green/10 text-ninja-green text-xs sm:text-sm rounded-lg hover:bg-ninja-green hover:text-ninja-black transition-colors"
           >
             Create Your First Course
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {courses.map((course) => (
             <div
               key={course._id}
               className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg overflow-hidden hover:border-ninja-green/30 transition-colors"
             >
-              <div className="h-48 overflow-hidden">
+              <div className="h-40 sm:h-48 overflow-hidden">
                 <img
                   src={course.thumbnail}
                   alt={course.title}
                   className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                 />
               </div>
-              <div className="p-6">
-                <h3 className="text-lg font-monument text-ninja-white mb-2">{course.title}</h3>
-                <p className="text-ninja-white/60 text-sm mb-4 line-clamp-2">{course.description}</p>
+              <div className="p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-monument text-ninja-white mb-2 line-clamp-1">{course.title}</h3>
+                <p className="text-xs sm:text-sm text-ninja-white/60 mb-4 line-clamp-2">{course.description}</p>
                 <div className="flex items-center justify-between text-xs text-ninja-white/60 mb-4">
                   <div className="flex items-center">
                     <FiUsers className="mr-1" />
@@ -112,14 +112,18 @@ const TeacherCourses: React.FC = () => {
                     className="px-3 py-2 bg-ninja-purple/10 text-ninja-purple rounded hover:bg-ninja-purple/20 transition-colors"
                     onClick={() => {/* Edit functionality will be added later */}}
                   >
-                    <FiEdit2 />
+                    <FiEdit2 className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                   <button
                     className="px-3 py-2 bg-red-500/10 text-red-500 rounded hover:bg-red-500/20 transition-colors"
                     onClick={() => handleDeleteCourse(course._id!)}
                     disabled={isDeleting === course._id}
                   >
-                    {isDeleting === course._id ? '...' : <FiTrash2 />}
+                    {isDeleting === course._id ? (
+                      <span className="block w-4 h-4 sm:w-5 sm:h-5">...</span>
+                    ) : (
+                      <FiTrash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                    )}
                   </button>
                 </div>
               </div>

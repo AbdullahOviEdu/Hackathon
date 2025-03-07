@@ -19,6 +19,7 @@ import Calendar from '../../components/Calendar';
 import TeacherCourses from './TeacherCourses';
 import TeacherCalendar from './TeacherCalendar';
 import TeacherStudents from './TeacherStudents';
+import TeacherConnections from './TeacherConnections';
 import Settings from '../Settings';
 
 // Services and Types
@@ -63,6 +64,7 @@ const TeacherDashboardPage: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -139,23 +141,65 @@ const TeacherDashboardPage: React.FC = () => {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-ninja-black">
-        <div className="text-ninja-green font-monument">Loading...</div>
+        <div className="text-ninja-green font-monument text-sm sm:text-base">Loading...</div>
       </div>
     );
   }
+
+  const menuItems = [
+    { id: 'overview', icon: FiBarChart2, label: 'Overview' },
+    { id: 'courses', icon: FiBook, label: 'Courses' },
+    { id: 'calendar', icon: FiCalendar, label: 'Calendar' },
+    { id: 'students', icon: FiUsers, label: 'Students' },
+    { id: 'connections', icon: FiUserPlus, label: 'Connections' },
+    { id: 'settings', icon: FiSettings, label: 'Settings' },
+  ];
 
   return (
     <div className="flex flex-col h-screen bg-ninja-black">
       <Navbar />
       
-      <div className="flex flex-1 pt-20">
-        <div className="w-64 bg-ninja-black/95 border-r border-ninja-white/10">
-          <div className="p-6">
+      <div className="flex flex-1 pt-16 sm:pt-20">
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="fixed bottom-4 right-4 z-50 lg:hidden bg-ninja-green text-ninja-black p-3 rounded-full shadow-lg"
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            {isMobileMenuOpen ? (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            ) : (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            )}
+          </svg>
+        </button>
+
+        {/* Sidebar */}
+        <div className={`
+          fixed inset-y-0 left-0 z-40 w-64 bg-ninja-black/95 border-r border-ninja-white/10 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
+          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}>
+          <div className="p-4 sm:p-6">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative w-full px-4 py-2 bg-ninja-black/50 border border-ninja-white/10 rounded-lg text-ninja-white/80 hover:bg-ninja-green/10 hover:text-ninja-white transition-colors flex items-center justify-between"
+              className="relative w-full px-3 sm:px-4 py-2 bg-ninja-black/50 border border-ninja-white/10 rounded-lg text-ninja-white/80 hover:bg-ninja-green/10 hover:text-ninja-white transition-colors flex items-center justify-between"
             >
-              <span className="font-monument text-sm">Notifications</span>
+              <span className="font-monument text-xs sm:text-sm">Notifications</span>
               {unreadNotifications > 0 && (
                 <span className="bg-ninja-purple text-ninja-black text-xs font-bold px-2 py-1 rounded-full">
                   {unreadNotifications}
@@ -164,14 +208,14 @@ const TeacherDashboardPage: React.FC = () => {
             </button>
 
             {showNotifications && (
-              <div className="absolute left-64 top-20 w-96 bg-ninja-black/95 border border-ninja-white/10 rounded-lg shadow-xl p-4 max-h-[80vh] overflow-y-auto">
-                <h3 className="font-monument text-ninja-white text-lg mb-4">Notifications</h3>
+              <div className="absolute left-64 top-20 w-72 sm:w-96 bg-ninja-black/95 border border-ninja-white/10 rounded-lg shadow-xl p-4 max-h-[80vh] overflow-y-auto">
+                <h3 className="font-monument text-ninja-white text-base sm:text-lg mb-4">Notifications</h3>
                 {notifications.length > 0 ? (
                   <div className="space-y-4">
                     {notifications.map((notification) => (
                       <div
                         key={notification._id}
-                        className={`p-4 rounded-lg ${
+                        className={`p-3 sm:p-4 rounded-lg ${
                           notification.read
                             ? 'bg-ninja-black/30'
                             : 'bg-ninja-green/10 border-l-2 border-ninja-green'
@@ -179,8 +223,8 @@ const TeacherDashboardPage: React.FC = () => {
                       >
                         <div className="flex justify-between items-start">
                           <div>
-                            <div className="font-medium text-ninja-white mb-1">{notification.title}</div>
-                            <div className="text-sm text-ninja-white/60 mb-2">{notification.message}</div>
+                            <div className="font-medium text-ninja-white text-sm sm:text-base mb-1">{notification.title}</div>
+                            <div className="text-xs sm:text-sm text-ninja-white/60 mb-2">{notification.message}</div>
                             <div className="text-xs text-ninja-white/40">
                               {new Date(notification.createdAt).toLocaleString()}
                             </div>
@@ -188,10 +232,10 @@ const TeacherDashboardPage: React.FC = () => {
                           {!notification.read && (
                             <button
                               onClick={() => handleMarkAsRead(notification._id)}
-                              className="p-2 hover:bg-ninja-green/10 rounded-full text-ninja-green"
+                              className="p-1.5 sm:p-2 hover:bg-ninja-green/10 rounded-full text-ninja-green"
                               title="Mark as read"
                             >
-                              <FiCheck className="w-4 h-4" />
+                              <FiCheck className="w-3 h-3 sm:w-4 sm:h-4" />
                             </button>
                           )}
                         </div>
@@ -199,143 +243,109 @@ const TeacherDashboardPage: React.FC = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center text-ninja-white/60 py-4">No notifications</div>
+                  <div className="text-center text-ninja-white/60 py-4 text-sm">No notifications</div>
                 )}
               </div>
             )}
           </div>
-          <nav className="mt-6 space-y-2">
-            {[
-              { id: 'overview', icon: FiBarChart2, label: 'Overview' },
-              { id: 'courses', icon: FiBook, label: 'Courses' },
-              { id: 'calendar', icon: FiCalendar, label: 'Calendar' },
-              { id: 'students', icon: FiUsers, label: 'Students' },
-              { id: 'connections', icon: FiUserPlus, label: 'Connections' },
-              { id: 'settings', icon: FiSettings, label: 'Settings' },
-            ].map(({ id, icon: Icon, label }) => (
+
+          <nav className="mt-4 sm:mt-6 space-y-1 sm:space-y-2">
+            {menuItems.map(({ id, icon: Icon, label }) => (
               <button
                 key={id}
-                onClick={() => setActiveTab(id)}
-                className={`w-full px-6 py-3 flex items-center text-ninja-white/80 hover:bg-ninja-green/10 hover:text-ninja-white transition-colors ${
+                onClick={() => {
+                  setActiveTab(id);
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full px-4 sm:px-6 py-2.5 sm:py-3 flex items-center text-ninja-white/80 hover:bg-ninja-green/10 hover:text-ninja-white transition-colors ${
                   activeTab === id ? 'bg-ninja-green/10 text-ninja-white' : ''
                 }`}
               >
-                <Icon className="w-5 h-5 mr-3" />
-                <span className="font-monument text-sm">{label}</span>
+                <Icon className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3" />
+                <span className="font-monument text-xs sm:text-sm">{label}</span>
               </button>
             ))}
+
             <Link
               to="/teacher/learning-bot"
-              className={`flex items-center px-6 py-3 text-ninja-white/80 hover:bg-ninja-green/10 hover:text-ninja-white transition-colors ${
-                location.pathname === '/teacher/learning-bot' ? 'bg-ninja-green/10 text-ninja-white' : ''
-              }`}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center px-4 sm:px-6 py-2.5 sm:py-3 text-ninja-white/80 hover:bg-ninja-green/10 hover:text-ninja-white transition-colors"
             >
-              <FaRobot className="w-5 h-5 mr-3" />
-              <span className="font-bold">Learning Bot</span>
+              <FaRobot className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3" />
+              <span className="font-monument text-xs sm:text-sm">Learning Bot</span>
             </Link>
+
             <Link
               to="/teacher/voice-assistant"
-              className={`flex items-center px-6 py-3 text-ninja-white/80 hover:bg-ninja-green/10 hover:text-ninja-white transition-colors ${
-                location.pathname === '/teacher/voice-assistant' ? 'bg-ninja-green/10 text-ninja-white' : ''
-              }`}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center px-4 sm:px-6 py-2.5 sm:py-3 text-ninja-white/80 hover:bg-ninja-green/10 hover:text-ninja-white transition-colors"
             >
-              <FaMicrophone className="w-5 h-5 mr-3" />
-              <span className="font-bold">Voice Assistant</span>
+              <FaMicrophone className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3" />
+              <span className="font-monument text-xs sm:text-sm">Voice Assistant</span>
             </Link>
+
             <button
               onClick={handleLogout}
-              className="w-full px-6 py-3 flex items-center text-ninja-white/80 hover:bg-ninja-green/10 hover:text-ninja-white transition-colors mt-auto"
+              className="w-full px-4 sm:px-6 py-2.5 sm:py-3 flex items-center text-ninja-white/80 hover:bg-ninja-green/10 hover:text-ninja-white transition-colors mt-4 sm:mt-6"
             >
-              <FiLogOut className="w-5 h-5 mr-3" />
-              <span className="font-monument text-sm">Logout</span>
+              <FiLogOut className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3" />
+              <span className="font-monument text-xs sm:text-sm">Logout</span>
             </button>
           </nav>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-8">
-            {activeTab === 'overview' && (
-              <div className="space-y-8">
-                {/* Student Enrollment Stats */}
-                <div className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="font-monument text-ninja-white text-lg">Student Enrollment</h2>
+        {/* Main Content */}
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+          {/* Render active tab content */}
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Stats Cards */}
+                {stats && Object.entries(stats).map(([key, value]) => (
+                  <div key={key} className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg p-4 sm:p-6">
+                    <h3 className="text-xs sm:text-sm text-ninja-white/60 mb-2">{key}</h3>
+                    <div className="text-lg sm:text-2xl font-monument text-ninja-white">{value}</div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {courses.map((course) => (
-                      <div
-                        key={course.id}
-                        className="flex flex-col p-4 bg-ninja-black/30 rounded-lg border border-ninja-white/5"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-ninja-purple/20 to-ninja-green/20 flex items-center justify-center mr-4">
-                              <FiUsers className="text-ninja-green" />
-                            </div>
-                            <div>
-                              <div className="font-monument text-ninja-white">{course.name}</div>
-                              <div className="text-xs text-ninja-white/60">{course.class}</div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="mt-2 flex items-center justify-between">
-                          <div className="text-2xl font-monument text-ninja-green">
-                            {course.enrolledStudents?.length || 0}
-                          </div>
-                          <div className="text-sm text-ninja-white/60">Students Enrolled</div>
-                        </div>
+                ))}
+              </div>
+
+              {/* Recent Activity */}
+              <div className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg p-4 sm:p-6">
+                <h2 className="text-base sm:text-lg font-monument text-ninja-white mb-4">Recent Activity</h2>
+                <div className="space-y-4">
+                  {getCombinedActivities().map((activity) => (
+                    <div key={activity.id} className="flex items-start gap-3 text-sm">
+                      <div className="w-8 h-8 rounded-full bg-ninja-green/10 flex items-center justify-center text-ninja-green">
+                        <FiClock className="w-4 h-4" />
                       </div>
-                    ))}
-                  </div>
-                  <div className="mt-6 pt-6 border-t border-ninja-white/10">
-                    <div className="flex items-center justify-between">
-                      <div className="text-ninja-white/60">Total Students Enrolled</div>
-                      <div className="text-2xl font-monument text-ninja-green">
-                        {courses.reduce((total, course) => total + (course.enrolledStudents?.length || 0), 0)}
+                      <div>
+                        <div className="text-ninja-white">{activity.title}</div>
+                        <div className="text-ninja-white/60 text-xs">{activity.description}</div>
+                        <div className="text-ninja-white/40 text-xs mt-1">
+                          {activity.timestamp.toLocaleString()}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                {/* Recent Activity */}
-                <div className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="font-monument text-ninja-white text-lg">Recent Activity</h2>
-                  </div>
-                  <div className="space-y-4">
-                    {getCombinedActivities().slice(0, 5).map((activity) => (
-                      <div
-                        key={activity.id}
-                        className={`flex items-start p-4 bg-ninja-black/30 rounded-lg border border-ninja-white/5 hover:border-ninja-green/30 transition-colors ${
-                          activity.isNotification && !activity.read ? 'bg-ninja-green/10 border-l-2 border-ninja-green' : ''
-                        }`}
-                      >
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-ninja-purple/20 to-ninja-green/20 flex items-center justify-center mr-4">
-                          {activity.type === 'class' && <FiBook className="text-ninja-green" />}
-                          {activity.type === 'enrollment' && <FiUserPlus className="text-ninja-green" />}
-                          {activity.type === 'system' && <FiClock className="text-ninja-purple" />}
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-monument text-ninja-white">{activity.title}</div>
-                          <div className="text-xs text-ninja-white/60 mb-1">{activity.description}</div>
-                          <div className="text-xs text-ninja-white/40">
-                            {activity.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  ))}
                 </div>
               </div>
-            )}
-
-            {activeTab === 'courses' && <TeacherCourses />}
-            {activeTab === 'calendar' && <TeacherCalendar />}
-            {activeTab === 'students' && <TeacherStudents />}
-            {activeTab === 'settings' && <Settings />}
-          </div>
+            </div>
+          )}
+          {activeTab === 'courses' && <TeacherCourses courses={courses} />}
+          {activeTab === 'calendar' && <TeacherCalendar events={events} />}
+          {activeTab === 'students' && <TeacherStudents courses={courses} />}
+          {activeTab === 'connections' && <TeacherConnections />}
+          {activeTab === 'settings' && <Settings />}
         </div>
       </div>
+
+      {/* Overlay for mobile menu */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
     </div>
   );
 };

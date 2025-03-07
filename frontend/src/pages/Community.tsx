@@ -135,9 +135,9 @@ const QuestionForm = ({ onSubmit, onCancel, isSubmitting }: QuestionFormProps) =
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-ninja-black/95 p-6 rounded-xl w-full max-w-2xl mx-4" onClick={e => e.stopPropagation()}>
-        <h2 className="font-monument text-2xl mb-6">Ask a Question</h2>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-ninja-black/95 p-4 sm:p-6 rounded-xl w-full max-w-2xl mx-auto overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
+        <h2 className="font-monument text-xl sm:text-2xl mb-4 sm:mb-6">Ask a Question</h2>
         <form onSubmit={async (e) => {
           e.preventDefault();
           await onSubmit(formState);
@@ -407,222 +407,141 @@ const Community = () => {
   ];
 
   const QuestionsList = () => {
-    if (!isLoaded) {
-      return (
-        <div className="space-y-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="backdrop-blur-xl bg-white/5 rounded-xl p-6 animate-pulse">
-              <div className="h-4 bg-white/10 rounded w-3/4 mb-4"></div>
-              <div className="h-4 bg-white/10 rounded w-1/2"></div>
+    return (
+      <div className="space-y-6">
+        {/* Search and Filter Section */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="col-span-1 sm:col-span-2 lg:col-span-2">
+            <input
+              type="text"
+              placeholder="Search questions..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-ninja-green/50 transition-all"
+            />
+          </div>
+          <CustomDropdown
+            options={timeFilters}
+            value={timeFilter}
+            onChange={setTimeFilter}
+            className="w-full"
+          />
+          <CustomDropdown
+            options={categories.map(cat => ({ value: cat.toLowerCase(), label: cat }))}
+            value={selectedCategory}
+            onChange={setSelectedCategory}
+            className="w-full"
+          />
+        </div>
+
+        {/* Questions Grid */}
+        <div className="grid grid-cols-1 gap-4">
+          {posts.map((post) => (
+            <div
+              key={post.id}
+              className="bg-white/5 rounded-xl p-4 sm:p-6 hover:bg-white/10 transition-all cursor-pointer border border-white/10"
+              onClick={() => navigate(`/question/${post.id}`)}
+            >
+              <div className="flex flex-col sm:flex-row gap-4">
+                {/* Vote and Stats Column */}
+                <div className="flex sm:flex-col items-center sm:items-start gap-4 sm:gap-6 sm:w-20">
+                  <div className="flex sm:flex-col items-center gap-2">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleVote(post.id, 'up');
+                      }}
+                      className={`p-1 rounded transition-colors ${
+                        post.isUserVoted === 'up' ? 'text-ninja-green' : 'text-white/40 hover:text-white/60'
+                      }`}
+                    >
+                      ▲
+                    </button>
+                    <span className="font-medium">{post.votes}</span>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleVote(post.id, 'down');
+                      }}
+                      className={`p-1 rounded transition-colors ${
+                        post.isUserVoted === 'down' ? 'text-ninja-orange' : 'text-white/40 hover:text-white/60'
+                      }`}
+                    >
+                      ▼
+                    </button>
+                  </div>
+                  <div className="flex sm:flex-col items-center text-sm text-white/60">
+                    <span className="hidden sm:block">{post.answers.length} answers</span>
+                    <span className="hidden sm:block">{post.views} views</span>
+                  </div>
+                </div>
+
+                {/* Content Column */}
+                <div className="flex-1">
+                  <h3 className="text-lg font-medium mb-2 line-clamp-2">{post.title}</h3>
+                  <p className="text-white/60 text-sm mb-4 line-clamp-2">{post.content}</p>
+                  
+                  <div className="flex flex-wrap items-center gap-2 mb-4">
+                    {post.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 bg-white/5 rounded text-xs text-white/80"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm text-white/60">
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={post.avatar}
+                        alt={post.author}
+                        className="w-6 h-6 rounded-full"
+                      />
+                      <span>{post.author}</span>
+                    </div>
+                    <span>{post.createdAt}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
         </div>
-      );
-    }
-
-    if (posts.length === 0) {
-      return (
-        <div className="text-center py-12">
-          <p className="text-ninja-white/60">No questions found</p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-6">
-        {posts.map((post) => (
-          <div
-            key={post.id}
-            className="backdrop-blur-xl bg-white/5 rounded-xl p-6 transition-all duration-500 hover:bg-white/10"
-          >
-            <div className="flex gap-4">
-              {/* Voting */}
-              <div className="flex flex-col items-center gap-2">
-                <button
-                  onClick={() => handleVote(post.id, 'up')}
-                  className={`p-1 rounded ${post.isUserVoted === 'up' ? 'text-ninja-green' : 'text-white/60 hover:text-white'}`}
-                >
-                  ▲
-                </button>
-                <span className={`text-sm font-medium ${post.votes >= 0 ? 'text-ninja-green' : 'text-red-500'}`}>
-                  {post.votes}
-                </span>
-                <button
-                  onClick={() => handleVote(post.id, 'down')}
-                  className={`p-1 rounded ${post.isUserVoted === 'down' ? 'text-red-500' : 'text-white/60 hover:text-white'}`}
-                >
-                  ▼
-                </button>
-              </div>
-
-              {/* Content */}
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-ninja-green to-ninja-purple flex items-center justify-center text-xs">
-                    {post.avatar}
-                  </div>
-                  <span className="text-sm text-ninja-white/80">{post.author}</span>
-                  <span className="text-ninja-white/40">•</span>
-                  <span className="text-sm text-ninja-white/60">{post.createdAt}</span>
-                </div>
-                
-                <h3 className="font-monument text-lg mb-2">{post.title}</h3>
-                <p className="text-ninja-white/80 mb-4">{post.content}</p>
-                
-                <div className="flex items-center gap-4">
-                  <span className="px-3 py-1 bg-white/5 rounded-full text-xs text-ninja-green">
-                    {post.category}
-                  </span>
-                  <span className="text-sm text-ninja-white/60">
-                    {post.answers.length} answers
-                  </span>
-                </div>
-
-                {/* Answers */}
-                <div className="mt-6 space-y-4">
-                  {post.answers.map((answer) => (
-                    <div key={answer.id} className="pl-8 border-l border-white/10">
-                      <div className="flex gap-4">
-                        {/* Answer Voting */}
-                        <div className="flex flex-col items-center gap-2">
-                          <button
-                            onClick={() => handleVote(post.id, 'up', true, answer.id)}
-                            className={`p-1 rounded ${answer.isUserVoted === 'up' ? 'text-ninja-green' : 'text-white/60 hover:text-white'}`}
-                          >
-                            ▲
-                          </button>
-                          <span className={`text-sm font-medium ${answer.votes >= 0 ? 'text-ninja-green' : 'text-red-500'}`}>
-                            {answer.votes}
-                          </span>
-                          <button
-                            onClick={() => handleVote(post.id, 'down', true, answer.id)}
-                            className={`p-1 rounded ${answer.isUserVoted === 'down' ? 'text-red-500' : 'text-white/60 hover:text-white'}`}
-                          >
-                            ▼
-                          </button>
-                        </div>
-
-                        {/* Answer Content */}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-ninja-green to-ninja-purple flex items-center justify-center text-xs">
-                              {answer.avatar}
-                            </div>
-                            <span className="text-sm text-ninja-white/80">{answer.author}</span>
-                            <span className="text-ninja-white/40">•</span>
-                            <span className="text-sm text-ninja-white/60">{answer.createdAt}</span>
-                          </div>
-                          <p className="text-ninja-white/80">{answer.content}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-ninja-black via-ninja-black/95 to-ninja-black text-ninja-white">
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-from)_0%,_transparent_65%)] from-ninja-green/5" />
+    <div className="min-h-screen bg-ninja-black text-ninja-white">
       <Navbar />
-
-      <main className="relative max-w-7xl mx-auto px-4 md:px-8 lg:px-16 pt-16 md:pt-24 pb-16">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="font-monument text-4xl mb-2">Community</h1>
-            <p className="text-ninja-white/60">Ask questions, share knowledge, help others</p>
+            <h1 className="font-monument text-3xl sm:text-4xl mb-2">Community</h1>
+            <p className="text-white/60">Ask questions, share knowledge, grow together</p>
           </div>
-          {isAuthenticated && (
-            <button
-              onClick={() => setShowPostForm(true)}
-              className="px-6 py-3 bg-ninja-green text-ninja-black font-monument text-sm rounded-lg hover:scale-105 transition-all duration-300"
-            >
-              Ask a Question
-            </button>
-          )}
+          <button
+            onClick={() => setShowPostForm(true)}
+            className="px-6 py-3 bg-ninja-green text-ninja-black font-monument text-sm rounded-lg hover:bg-ninja-green/90 transition-colors whitespace-nowrap"
+          >
+            Ask Question
+          </button>
         </div>
 
-        {/* Search and Filters */}
-        <div className="space-y-4 mb-8">
-          <div className="relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search questions..."
-              className="w-full px-4 py-2 pl-10 bg-white/5 border border-white/10 rounded-lg focus:border-ninja-green/50 transition-colors"
-            />
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40">
-              🔍
-            </span>
-          </div>
-
-          <div className="flex flex-wrap gap-4">
-            <CustomDropdown
-              options={[
-                { value: 'newest', label: 'Newest' },
-                { value: 'popular', label: 'Most Popular' },
-                { value: 'unanswered', label: 'Unanswered' }
-              ]}
-              value={sortBy}
-              onChange={setSortBy}
-              className="w-40"
-            />
-
-            <CustomDropdown
-              options={categories.map(cat => ({
-                value: cat.toLowerCase(),
-                label: cat
-              }))}
-              value={selectedCategory}
-              onChange={setSelectedCategory}
-              className="w-40"
-            />
-
-            <CustomDropdown
-              options={timeFilters}
-              value={timeFilter}
-              onChange={setTimeFilter}
-              className="w-40"
-            />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {selectedTags.map((tag) => (
-              <button
-                key={tag}
-                onClick={() => setSelectedTags(prev =>
-                  prev.filter(t => t !== tag)
-                )}
-                className={`px-3 py-1 rounded-full text-xs transition-colors ${
-                  selectedTags.includes(tag)
-                    ? 'bg-ninja-green text-ninja-black'
-                    : 'bg-white/5 text-white/60 hover:bg-white/10'
-                }`}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Content */}
+        {/* Main Content */}
         <QuestionsList />
+      </div>
 
-        {/* Post Form Modal */}
-        {showPostForm && (
-          <QuestionForm
-            onSubmit={handleFormSubmit}
-            onCancel={handleFormCancel}
-            isSubmitting={isSubmitting}
-          />
-        )}
-      </main>
+      {/* Question Form Modal */}
+      {showPostForm && (
+        <QuestionForm
+          onSubmit={handleFormSubmit}
+          onCancel={handleFormCancel}
+          isSubmitting={isSubmitting}
+        />
+      )}
     </div>
   );
 };
