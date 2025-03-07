@@ -7,11 +7,8 @@ const authRoutes = require('./routes/authRoutes');
 const courseRoutes = require('./routes/courseRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const teacherRoutes = require('./routes/teacherRoutes');
-<<<<<<< Updated upstream
-const connectionRoutes = require('./routes/connectionRoutes');
-=======
 const questionRoutes = require('./routes/questionRoutes');
->>>>>>> Stashed changes
+const connectionRoutes = require('./routes/connectionRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -31,11 +28,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/teachers', teacherRoutes);
-<<<<<<< Updated upstream
 app.use('/api/connections', connectionRoutes);
-=======
 app.use('/api/questions', questionRoutes);
->>>>>>> Stashed changes
 
 // Basic route
 app.get('/', (req, res) => {
