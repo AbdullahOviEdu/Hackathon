@@ -27,11 +27,21 @@ export default {
         'fade-in': 'fadeIn 0.5s ease-out forwards',
         'scale-in': 'scaleIn 0.2s ease-out forwards',
         'tooltip-fade': 'tooltipFade 0.2s ease-out forwards',
+        'float-slow': 'float-slow 4s ease-in-out infinite',
+        'float-delayed': 'float-delayed 3.5s ease-in-out infinite'
       },
       keyframes: {
         float: {
           '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-20px)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        'float-slow': {
+          '0%, 100%': { transform: 'translateY(0) rotate(12deg)' },
+          '50%': { transform: 'translateY(-15px) rotate(12deg)' },
+        },
+        'float-delayed': {
+          '0%, 100%': { transform: 'translateY(0) rotate(-12deg)' },
+          '50%': { transform: 'translateY(-12px) rotate(-12deg)' },
         },
         scroll: {
           '0%': { transform: 'translateX(0)' },

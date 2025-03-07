@@ -72,12 +72,12 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-ninja-black via-ninja-black/95 to-ninja-black text-ninja-white overflow-hidden">
+    <div className="h-screen bg-gradient-to-b from-ninja-black via-ninja-black/95 to-ninja-black text-ninja-white overflow-hidden">
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-from)_0%,_transparent_65%)] from-ninja-green/5" />
       <Navbar />
 
       <div className="relative max-w-7xl mx-auto px-4 md:px-8 lg:px-16 pt-16 md:pt-24">
-        <div className="relative flex flex-col items-center justify-center min-h-[calc(100vh-8rem)]">
+        <div className="relative flex flex-col items-center justify-center h-[calc(100vh-8rem)]">
           {/* Miroodles Decorations */}
           <div className="absolute inset-0 overflow-visible">
             <div className={`transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
@@ -113,12 +113,12 @@ const SignUp = () => {
 
           {/* Form Section - Centered */}
           <div className={`relative z-10 w-full max-w-md transition-all duration-1000 ${isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-            <div className="backdrop-blur-xl bg-white/5 rounded-2xl p-8 border border-white/10 shadow-xl">
+            <div className="backdrop-blur-xl bg-white/5 rounded-2xl p-8 border border-white/10 shadow-xl overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               <h1 className="font-monument text-3xl md:text-4xl mb-6 text-ninja-green text-center">
                 JOIN THE SQUAD
               </h1>
               
-              <form className="space-y-6" onLoad={() => setIsLoaded(true)}>
+              <form className="space-y-6 pb-4" onLoad={() => setIsLoaded(true)}>
                 <div className="space-y-2">
                   <label className="block text-sm text-ninja-white/80">Username</label>
                   <input 
