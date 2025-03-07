@@ -12,7 +12,6 @@ import Settings from './pages/Settings';
 import Resources from './pages/Resources';
 import Courses from './pages/Courses';
 import Community from './pages/Community';
-import Connections from './pages/Connections';
 import Meetings from './pages/Meetings';
 import Analytics from './pages/Analytics';
 import CourseDetails from './pages/CourseDetails';
@@ -22,6 +21,7 @@ import TeacherLearningBot from './pages/dashboard/TeacherLearningBot';
 import TeacherVoiceAssistant from './pages/dashboard/TeacherVoiceAssistant';
 import StudentDashboardLayout from './layouts/StudentDashboardLayout';
 import StudentCourses from './pages/StudentCourses';
+import Trivia from './pages/Trivia';
 
 const App = () => {
   useEffect(() => {
@@ -47,10 +47,10 @@ const App = () => {
         <Route path="/student-dashboard" element={<StudentDashboardLayout />}>
           <Route index element={<StudentDashboard />} />
           <Route path="courses" element={<StudentCourses />} />
-          <Route path="connections" element={<Connections />} />
           <Route path="meetings" element={<Meetings />} />
           <Route path="settings" element={<Settings />} />
           <Route path="analytics" element={<Analytics />} />
+          <Route path="trivia" element={<Trivia />} />
         </Route>
 
         {/* Teacher Routes */}

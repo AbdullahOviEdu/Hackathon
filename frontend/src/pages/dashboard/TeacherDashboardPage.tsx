@@ -19,7 +19,6 @@ import Calendar from '../../components/Calendar';
 import TeacherCourses from './TeacherCourses';
 import TeacherCalendar from './TeacherCalendar';
 import TeacherStudents from './TeacherStudents';
-import TeacherConnections from './TeacherConnections';
 import Settings from '../Settings';
 
 // Services and Types
@@ -333,7 +332,6 @@ const TeacherDashboardPage: React.FC = () => {
             {activeTab === 'courses' && <TeacherCourses />}
             {activeTab === 'calendar' && <TeacherCalendar />}
             {activeTab === 'students' && <TeacherStudents />}
-            {activeTab === 'connections' && <TeacherConnections />}
             {activeTab === 'settings' && <Settings />}
           </div>
         </div>

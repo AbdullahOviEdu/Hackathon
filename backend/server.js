@@ -10,6 +10,8 @@ const courseRoutes = require('./routes/courseRoutes');
 const questionRoutes = require('./routes/questionRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const teacherRoutes = require('./routes/teacherRoutes');
+const quizRoutes = require('./routes/quizRoutes');
+const coinRoutes = require('./routes/coinRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -45,6 +47,8 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/teachers', teacherRoutes);
+app.use('/api/quiz', quizRoutes);
+app.use('/api/coins', coinRoutes);
 
 // Basic route
 app.get('/', (req, res) => {

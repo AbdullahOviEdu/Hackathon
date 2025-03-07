@@ -5,6 +5,8 @@ import handsPhone2 from '../assets/Hands - Phone (2).png';
 import handsPhone3 from '../assets/Hands - Phone (3).png';
 import handsPhone4 from '../assets/Hands - Phone (4).png';
 import { isAuthenticated, logout } from '../services/authService';
+import { FaCoins } from 'react-icons/fa';
+import axios from 'axios';
 
 interface NavLinkProps {
   href: string;
@@ -78,6 +80,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [userAuthenticated, setUserAuthenticated] = useState(false);
   const [userType, setUserType] = useState<string | null>(null);
+  const [coins, setCoins] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -94,6 +97,24 @@ const Navbar = () => {
     };
     
     checkAuth();
+    
+    const fetchCoins = async () => {
+      try {
+        const token = localStorage.getItem('student_token') || localStorage.getItem('teacher_token');
+        if (!token) return;
+        
+        const response = await axios.get('http://localhost:5000/api/coins', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setCoins(response.data.coins);
+      } catch (error) {
+        console.error('Error fetching coins:', error);
+      }
+    };
+    
+    fetchCoins();
     
     return () => window.removeEventListener('scroll', handleScroll);
   }, [location.pathname]);
@@ -152,17 +173,21 @@ const Navbar = () => {
           {/* Right side with auth buttons */}
           <div className="flex-1 flex justify-end gap-2">
             {userAuthenticated ? (
-              <div className="flex items-center gap-4">
-                <button className="hidden md:flex items-center gap-2 px-4 py-2 text-ninja-white/60 hover:text-ninja-white transition-colors">
-                  <span>🔔</span>
-                  <span className="w-2 h-2 bg-ninja-green rounded-full" />
-                </button>
-                <button 
-                  onClick={handleLogout}
-                  className="hidden md:block px-6 py-2.5 text-ninja-white/80 font-monument text-sm hover:text-ninja-white transition-colors"
-                >
-                  Logout
-                </button>
+              <div className="flex items-center">
+                {userType === 'student' && (
+                  <div className="flex items-center bg-yellow-400/10 px-3 py-2 rounded-full mr-4 cursor-pointer hover:bg-yellow-400/20 transition-colors">
+                    <FaCoins className="text-yellow-400 mr-2" />
+                    <span className="text-white font-semibold">{coins}</span>
+                  </div>
+                )}
+                <div className="relative">
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center space-x-2 text-white hover:text-ninja-green transition-colors"
+                  >
+                    <span>Logout</span>
+                  </button>
+                </div>
               </div>
             ) : (
               <>

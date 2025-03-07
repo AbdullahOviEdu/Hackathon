@@ -1,202 +1,299 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { 
+  BookOpenIcon, 
+  DocumentTextIcon,
+  ArrowDownTrayIcon,
+  AcademicCapIcon,
+  CodeBracketIcon,
+  CommandLineIcon
+} from '@heroicons/react/24/outline';
 import Navbar from '../components/Navbar';
 
-const Resources = () => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('All Resources');
+interface Resource {
+  title: string;
+  url: string;
+  description?: string;
+  type: 'documentation' | 'tutorial' | 'book' | 'video' | 'other';
+}
+
+interface ResourceCategory {
+  name: string;
+  resources: Resource[];
+}
+
+const resourcesData: ResourceCategory[] = [
+  {
+    name: "JavaScript",
+    resources: [
+      {
+        title: "MDN Documentation",
+        url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+        type: "documentation"
+      },
+      {
+        title: "jQuery Documentation",
+        url: "https://api.jquery.com/",
+        type: "documentation"
+      },
+      {
+        title: "NodeJS Documentation",
+        url: "https://nodejs.org/en/docs/",
+        type: "documentation"
+      },
+      {
+        title: "Eloquent JavaScript",
+        url: "http://eloquentjavascript.net/",
+        type: "book"
+      },
+      {
+        title: "You Don't Know JS",
+        url: "https://github.com/getify/You-Dont-Know-JS",
+        type: "book"
+      }
+    ]
+  },
+  {
+    name: "Python",
+    resources: [
+      {
+        title: "Python Official Tutorial",
+        url: "https://docs.python.org/3/tutorial/",
+        type: "documentation"
+      },
+      {
+        title: "Automate the Boring Stuff with Python",
+        url: "https://automatetheboringstuff.com/",
+        type: "book"
+      },
+      {
+        title: "Python for Non-Programmers",
+        url: "https://wiki.python.org/moin/BeginnersGuide/NonProgrammers",
+        type: "tutorial"
+      },
+      {
+        title: "Socratica Python Tutorial",
+        url: "https://www.youtube.com/playlist?list=PLi01XoE8jYohWFPpC17Z-wWhPOSuh8Er-",
+        type: "video"
+      }
+    ]
+  },
+  {
+    name: "Web Development",
+    resources: [
+      {
+        title: "The Odin Project",
+        url: "https://www.theodinproject.com/",
+        type: "tutorial"
+      },
+      {
+        title: "MDN Web Docs",
+        url: "https://developer.mozilla.org/",
+        type: "documentation"
+      }
+    ]
+  },
+  {
+    name: "Computer Science",
+    resources: [
+      {
+        title: "CS Course from OSS University",
+        url: "https://github.com/ossu/computer-science",
+        type: "other"
+      },
+      {
+        title: "Computer Science Resources",
+        url: "https://github.com/the-akira/Computer-Science-Resources",
+        type: "other"
+      }
+    ]
+  }
+];
+
+const Resources: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setIsLoaded(true);
-  }, []);
+    const userType = localStorage.getItem('user_type');
+    const token = localStorage.getItem('student_token');
 
-  // Sample resources data
-  const resources = [
-    {
-      id: 1,
-      title: 'Frontend Development Guide',
-      type: 'Guide',
-      category: 'Frontend',
-      description: 'Comprehensive guide covering HTML, CSS, JavaScript, and modern frontend frameworks.',
-      downloads: 2500,
-      rating: 4.9,
-      icon: '📚'
-    },
-    {
-      id: 2,
-      title: 'System Design Templates',
-      type: 'Templates',
-      category: 'Architecture',
-      description: 'Collection of system design templates and best practices for scalable applications.',
-      downloads: 1800,
-      rating: 4.8,
-      icon: '📐'
-    },
-    {
-      id: 3,
-      title: 'Data Structures Cheat Sheet',
-      type: 'Cheat Sheet',
-      category: 'Algorithms',
-      description: 'Quick reference for common data structures and their implementations.',
-      downloads: 3200,
-      rating: 4.7,
-      icon: '📝'
-    },
-    {
-      id: 4,
-      title: 'DevOps Tools Collection',
-      type: 'Tools',
-      category: 'DevOps',
-      description: 'Curated list of essential DevOps tools and their use cases.',
-      downloads: 1500,
-      rating: 4.9,
-      icon: '🛠️'
+    if (!token || userType !== 'student') {
+      toast.error('Please sign in as a student to access the resources section');
+      navigate('/signin/student');
+      return;
     }
-  ];
 
-  const categories = [
-    { name: 'All Resources', icon: '📚', count: 450 },
-    { name: 'Guides', icon: '📖', count: 120 },
-    { name: 'Templates', icon: '📐', count: 85 },
-    { name: 'Cheat Sheets', icon: '📝', count: 65 },
-    { name: 'Tools', icon: '🛠️', count: 180 }
-  ];
+    // Simulate data loading
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        // In the future, you can replace this with actual API calls
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        setError('Failed to load resources');
+        toast.error('Failed to load resources');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const featuredResource = {
-    title: 'Full Stack Development Roadmap 2024',
-    description: 'A comprehensive roadmap to becoming a full stack developer in 2024. Includes technology recommendations, learning paths, and project ideas.',
-    author: 'Tech Ninja Team',
-    downloads: 5600,
-    rating: 4.9
+    loadData();
+  }, [navigate]);
+
+  const getIconForType = (type: string) => {
+    switch (type) {
+      case 'documentation':
+        return <DocumentTextIcon className="w-6 h-6" />;
+      case 'tutorial':
+        return <AcademicCapIcon className="w-6 h-6" />;
+      case 'book':
+        return <BookOpenIcon className="w-6 h-6" />;
+      case 'video':
+        return <CodeBracketIcon className="w-6 h-6" />;
+      default:
+        return <CommandLineIcon className="w-6 h-6" />;
+    }
   };
 
-  // Filter resources based on search query and active category
-  const filteredResources = resources.filter(resource => {
-    const matchesSearch = resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         resource.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         resource.category.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredResources = resourcesData.filter(category => {
+    if (selectedCategory && category.name !== selectedCategory) {
+      return false;
+    }
     
-    const matchesCategory = activeCategory === 'All Resources' || 
-                          resource.type === activeCategory.slice(0, -1); // Remove 's' from category name
-
-    return matchesSearch && matchesCategory;
+    if (searchTerm) {
+      return (
+        category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        category.resources.some(resource => 
+          resource.title.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    }
+    
+    return true;
   });
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-ninja-black via-ninja-black/95 to-ninja-black text-ninja-white">
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-from)_0%,_transparent_65%)] from-ninja-green/5" />
-      <Navbar />
+  const handleDownload = (resource: Resource) => {
+    window.open(resource.url, '_blank');
+  };
 
-      <main className="relative max-w-7xl mx-auto px-4 md:px-8 lg:px-16 pt-16 md:pt-24">
-        {/* Header */}
-        <div className={`transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <h1 className="font-monument text-4xl md:text-5xl mb-4">
-            Learning <span className="text-ninja-green">Resources</span>
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-gradient-to-b from-ninja-black to-ninja-black/95 pt-24">
+          <div className="flex flex-col justify-center items-center min-h-[80vh]">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-ninja-green border-t-transparent mb-4"></div>
+            <p className="text-white text-lg">Loading resources...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-gradient-to-b from-ninja-black to-ninja-black/95 pt-24">
+          <div className="flex flex-col justify-center items-center min-h-[80vh]">
+            <p className="text-white text-xl mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 bg-ninja-green text-white rounded-lg hover:bg-ninja-green/90 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gradient-to-b from-ninja-black to-ninja-black/95 pt-24 px-8 pb-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-white font-monument mb-4">
+              Programming Learning Resources
           </h1>
-          <p className="text-ninja-white/60 max-w-2xl">
-            Access our collection of curated resources to accelerate your learning journey. From guides to templates, we've got everything you need.
+            <p className="text-lg text-white/60">
+              Curated collection of the best programming resources
           </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="mt-8">
-          <div className="relative max-w-2xl">
+          <div className="mb-8 flex flex-col md:flex-row gap-4">
             <input
               type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search resources..."
-              className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-ninja-green/50 transition-colors text-ninja-white placeholder-white/40"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-ninja-green"
             />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-ninja-white/40">
-              🔍
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-12">
-          {/* Left Sidebar - Categories */}
-          <div className="space-y-4">
-            {categories.map((category, index) => (
-              <button
-                key={category.name}
-                onClick={() => setActiveCategory(category.name)}
-                className={`w-full flex items-center justify-between p-4 backdrop-blur-xl bg-white/5 rounded-xl transition-all duration-300 hover:bg-white/10 ${
-                  isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'
-                } ${activeCategory === category.name ? 'border border-ninja-green/50 bg-white/10' : ''}`}
-                style={{ transitionDelay: `${index * 100}ms` }}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{category.icon}</span>
-                  <span className="font-monument text-sm">{category.name}</span>
-                </div>
-                <span className="text-sm text-ninja-white/60">{category.count}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Main Content - Resources */}
-          <div className="lg:col-span-3 space-y-8">
-            {/* Featured Resource */}
-            <div 
-              className={`backdrop-blur-xl bg-white/5 rounded-xl p-8 border border-ninja-green/20 transition-all duration-500 ${
-                isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-              }`}
+            <select
+              value={selectedCategory || ''}
+              onChange={(e) => setSelectedCategory(e.target.value || null)}
+              className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-ninja-green"
             >
-              <div className="flex items-center gap-2 text-ninja-green text-sm mb-4">
-                <span>⭐</span>
-                <span className="font-monument">FEATURED RESOURCE</span>
+              <option value="">All Categories</option>
+              {resourcesData.map(category => (
+                <option key={category.name} value={category.name}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredResources.map(category => (
+              <div key={category.name} className="space-y-4">
+                <h2 className="text-2xl font-bold text-white mb-4">{category.name}</h2>
+                {category.resources.map((resource, index) => (
+                  <div
+                    key={index}
+                    className="bg-white/5 border border-white/10 rounded-lg p-4 hover:border-ninja-green/50 transition-all"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3">
+                        <div className="text-ninja-green mt-1">
+                          {getIconForType(resource.type)}
               </div>
-              <h2 className="font-monument text-2xl mb-3">{featuredResource.title}</h2>
-              <p className="text-ninja-white/60 mb-6">{featuredResource.description}</p>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4 text-sm text-ninja-white/60">
-                  <span>By {featuredResource.author}</span>
-                  <span>⬇️ {featuredResource.downloads}</span>
-                  <span>⭐ {featuredResource.rating}</span>
-                </div>
-                <button className="px-6 py-2 bg-ninja-green text-ninja-black font-monument text-sm rounded-lg hover:scale-105 transition-all duration-300">
-                  Download Now
-                </button>
+                        <div>
+                          <h3 className="text-white font-medium">{resource.title}</h3>
+                          <p className="text-white/60 text-sm mt-1">
+                            {resource.type.charAt(0).toUpperCase() + resource.type.slice(1)}
+                          </p>
               </div>
             </div>
-
-            {/* Resource Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredResources.map((resource, index) => (
-                <div
-                  key={resource.id}
-                  className={`backdrop-blur-xl bg-white/5 rounded-xl p-6 transition-all duration-500 hover:bg-white/10 ${
-                    isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                  }`}
-                  style={{ transitionDelay: `${index * 100}ms` }}
-                  onLoad={() => setIsLoaded(true)}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="text-3xl">{resource.icon}</div>
-                    <div className="px-3 py-1 bg-white/5 rounded-full text-xs text-ninja-green">
-                      {resource.type}
+                      <button
+                        onClick={() => handleDownload(resource)}
+                        className="text-ninja-green hover:text-ninja-green/80 transition-colors"
+                        title="Download/View Resource"
+                      >
+                        <ArrowDownTrayIcon className="w-6 h-6" />
+                      </button>
                     </div>
                   </div>
-                  <h3 className="font-monument text-lg mb-2">{resource.title}</h3>
-                  <p className="text-sm text-ninja-white/60 mb-4">{resource.description}</p>
-                  <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                    <div className="flex items-center gap-4 text-sm text-ninja-white/60">
-                      <span>⬇️ {resource.downloads}</span>
-                      <span>⭐ {resource.rating}</span>
-                    </div>
-                    <button className="px-4 py-2 bg-ninja-green/20 text-ninja-green text-sm rounded-lg hover:bg-ninja-green/30 transition-colors">
-                      Download
-                    </button>
-                  </div>
+                ))}
                 </div>
               ))}
             </div>
+
+          {filteredResources.length === 0 && (
+            <div className="text-center text-white/60 py-12">
+              No resources found matching your search criteria.
           </div>
+          )}
         </div>
-      </main>
     </div>
+    </>
   );
 };
 

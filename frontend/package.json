@@ -12,9 +12,11 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@heroicons/react": "^2.2.0",
     "@mui/icons-material": "^6.4.7",
     "@mui/material": "^6.4.7",
     "axios": "^1.8.2",
+    "framer-motion": "^12.4.10",
     "groq-sdk": "^0.15.0",
     "gsap": "^3.12.7",
     "react": "^19.0.0",

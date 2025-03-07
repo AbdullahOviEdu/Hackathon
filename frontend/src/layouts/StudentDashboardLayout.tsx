@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
-import { FiGrid, FiUsers, FiBook, FiCalendar, FiSettings, FiLogOut } from 'react-icons/fi';
+import { FiGrid, FiBook, FiCalendar, FiSettings, FiLogOut, FiHelpCircle } from 'react-icons/fi';
 import Navbar from '../components/Navbar';
 
 const StudentDashboardLayout: React.FC = () => {
@@ -26,15 +26,11 @@ const StudentDashboardLayout: React.FC = () => {
       label: 'My Courses',
       path: '/student-dashboard/courses'
     },
+    
     {
-      icon: FiUsers,
-      label: 'Connections',
-      path: '/student-dashboard/connections'
-    },
-    {
-      icon: FiCalendar,
-      label: 'Meetings',
-      path: '/student-dashboard/meetings'
+      icon: FiHelpCircle,
+      label: 'Trivia',
+      path: '/student-dashboard/trivia'
     },
     {
       icon: FiSettings,
