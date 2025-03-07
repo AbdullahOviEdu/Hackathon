@@ -37,6 +37,9 @@ export const loginTeacher = async (email: string, password: string) => {
       localStorage.setItem('teacher_token', response.data.token);
       localStorage.setItem('user_type', 'teacher');
       localStorage.setItem('teacher_data', JSON.stringify(response.data.data));
+      
+      // Set default Authorization header for future requests
+      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
     }
     
     return response.data;
@@ -138,4 +141,16 @@ export const getCurrentUser = () => {
 // Get user type
 export const getUserType = () => {
   return localStorage.getItem('user_type');
+};
+
+// Setup authorization header from stored token
+export const setupAuthHeader = () => {
+  const userType = localStorage.getItem('user_type');
+  const token = userType === 'teacher' 
+    ? localStorage.getItem('teacher_token')
+    : localStorage.getItem('student_token');
+    
+  if (token) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  }
 }; 

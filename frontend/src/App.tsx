@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
+import { useEffect } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
+import { setupAuthHeader } from './services/authService';
 import Home from './pages/Home';
 import StudentSignUp from './pages/SignUp/StudentSignUp';
 import TeacherSignUp from './pages/SignUp/TeacherSignUp';
@@ -22,6 +24,10 @@ import StudentDashboardLayout from './layouts/StudentDashboardLayout';
 import StudentCourses from './pages/StudentCourses';
 
 const App = () => {
+  useEffect(() => {
+    setupAuthHeader();
+  }, []);
+
   return (
     <Router>
       <ToastContainer position="top-right" autoClose={3000} />
