@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import teacherIllustration from '../../assets/Happy Bunch - Chat.png';
 
 const TeacherSignIn = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -13,6 +14,11 @@ const TeacherSignIn = () => {
     e.preventDefault();
     // Handle login logic here
     console.log('Teacher login:', formData);
+    // Mock successful login
+    localStorage.setItem('teacher_token', 'mock_token');
+    localStorage.setItem('user_type', 'teacher');
+    // Navigate to teacher dashboard
+    navigate('/teacher/dashboard');
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

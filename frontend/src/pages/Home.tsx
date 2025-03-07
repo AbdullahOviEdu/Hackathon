@@ -82,9 +82,15 @@ const Home = () => {
                 </Link>
                 <Link 
                   to="/course/1"
-                  className="px-7 py-3 bg-transparent text-ninja-white font-monument text-sm rounded-lg border border-ninja-white/20 hover:border-ninja-green/50 hover:bg-ninja-green/5 transition-all duration-300"
+                  className="px-7 py-3 bg-transparent text-ninja-white font-monument text-sm rounded-lg border border-white/20 hover:border-ninja-green/50 hover:bg-ninja-green/5 transition-all duration-300"
                 >
                   Explore Courses
+                </Link>
+                <Link 
+                  to="/signin/teacher"
+                  className="px-7 py-3 bg-transparent text-ninja-white font-monument text-sm rounded-lg border border-white/20 hover:border-ninja-purple/50 hover:bg-ninja-purple/5 transition-all duration-300"
+                >
+                  Teacher Login
                 </Link>
               </div>
 

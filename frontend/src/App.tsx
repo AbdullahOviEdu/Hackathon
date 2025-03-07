@@ -14,6 +14,7 @@ import Meetings from './pages/Meetings';
 import Analytics from './pages/Analytics';
 import CourseDetails from './pages/CourseDetails';
 import StudentDashboard from './dashboard/StudentDashboard/StudentDashboard';
+import TeacherDashboardPage from './pages/dashboard/TeacherDashboardPage';
 
 const App = () => {
   return (
@@ -35,6 +36,7 @@ const App = () => {
         <Route path="/student-dashboard/meetings" element={<Meetings />} />
         <Route path="/student-dashboard/settings" element={<Settings />} />
         <Route path="/student-dashboard/analytics" element={<Analytics />} />
+        <Route path="/teacher/dashboard" element={<TeacherDashboardPage />} />
       </Routes>
     </Router>
   );

@@ -1,115 +1,124 @@
-import { Course, Student, Activity, DashboardStats, CalendarEvent } from '../types/dashboard';
+import { Course, Activity, DashboardStats, CalendarEvent } from '../types/dashboard';
 
-// Mock data
+// Mock data for development
 const mockCourses: Course[] = [
   {
     id: '1',
     name: 'Advanced Mathematics',
-    class: 'Class X-A',
-    time: '9:00 AM',
-    meetingLink: 'https://meet.google.com/abc',
+    class: 'Grade 12-A',
+    time: '09:00',
+    meetingLink: 'https://meet.google.com/abc-123',
+    description: 'Advanced calculus and linear algebra',
+    instructor: 'Dr. Smith',
+    thumbnail: '/math-thumbnail.jpg',
   },
   {
     id: '2',
     name: 'Physics',
-    class: 'Class X-B',
-    time: '10:30 AM',
-    meetingLink: 'https://meet.google.com/def',
+    class: 'Grade 12-B',
+    time: '11:00',
+    meetingLink: 'https://meet.google.com/def-456',
+    description: 'Quantum mechanics and relativity',
+    instructor: 'Dr. Johnson',
+    thumbnail: '/physics-thumbnail.jpg',
   },
   {
     id: '3',
-    name: 'Chemistry',
-    class: 'Class X-C',
-    time: '2:00 PM',
-    meetingLink: 'https://meet.google.com/ghi',
+    name: 'Computer Science',
+    class: 'Grade 12-C',
+    time: '14:00',
+    meetingLink: 'https://meet.google.com/ghi-789',
+    description: 'Data structures and algorithms',
+    instructor: 'Prof. Williams',
+    thumbnail: '/cs-thumbnail.jpg',
   },
 ];
 
 const mockActivities: Activity[] = [
   {
     id: '1',
-    type: 'assignment',
-    title: 'Mathematics Assignment #3',
-    description: 'John Doe submitted Mathematics Assignment #3',
+    type: 'class',
+    title: 'Class Started',
+    description: 'Advanced Mathematics class started',
     timestamp: new Date(),
-    status: 'submitted',
   },
   {
     id: '2',
-    type: 'attendance',
-    title: 'Class Attendance',
-    description: 'Sarah marked attendance for Physics class',
+    type: 'assignment',
+    title: 'Assignment Submitted',
+    description: 'Physics homework submitted by John Doe',
     timestamp: new Date(Date.now() - 3600000),
   },
   {
     id: '3',
-    type: 'grade',
-    title: 'Assignment Graded',
-    description: 'Chemistry Assignment #2 has been graded',
+    type: 'message',
+    title: 'New Message',
+    description: 'Question about today\'s lesson from Sarah',
     timestamp: new Date(Date.now() - 7200000),
-    status: 'graded',
   },
 ];
 
 const mockStats: DashboardStats = {
-  totalStudents: 256,
-  activeCourses: 8,
-  averagePerformance: 85,
+  totalStudents: '150',
+  activeCourses: '5',
+  teachingHours: '120',
+  courseProgress: '75%',
 };
 
 const mockEvents: CalendarEvent[] = [
   {
     id: '1',
-    title: 'Mathematics Class',
-    date: new Date(),
-    type: 'class',
-    details: 'Class X-A Advanced Mathematics',
+    title: 'Math Quiz',
+    date: new Date(Date.now() + 86400000).toISOString(),
+    type: 'exam',
+    description: 'Chapter 5 Assessment',
   },
   {
     id: '2',
-    title: 'Physics Exam',
-    date: new Date(Date.now() + 86400000 * 2), // 2 days from now
-    type: 'exam',
-    details: 'Class X-B Physics Mid-term',
+    title: 'Parent-Teacher Meeting',
+    date: new Date(Date.now() + 172800000).toISOString(),
+    type: 'meeting',
+    description: 'Semester Progress Discussion',
   },
   {
     id: '3',
-    title: 'Chemistry Assignment Due',
-    date: new Date(Date.now() + 86400000 * 3), // 3 days from now
-    type: 'assignment',
-    details: 'Submit Chemistry Lab Report',
+    title: 'Physics Lab',
+    date: new Date(Date.now() + 259200000).toISOString(),
+    type: 'class',
+    description: 'Practical Experiment Session',
   },
 ];
 
-export const dashboardService = {
-  getCourses: async (): Promise<Course[]> => {
+class DashboardService {
+  async getStats(): Promise<DashboardStats> {
     // Simulate API call
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(mockCourses), 500);
-    });
-  },
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return mockStats;
+  }
 
-  getActivities: async (): Promise<Activity[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(mockActivities), 500);
-    });
-  },
+  async getCourses(): Promise<Course[]> {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return mockCourses;
+  }
 
-  getStats: async (): Promise<DashboardStats> => {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(mockStats), 500);
-    });
-  },
+  async getActivities(): Promise<Activity[]> {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return mockActivities;
+  }
 
-  getEvents: async (): Promise<CalendarEvent[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(mockEvents), 500);
-    });
-  },
+  async getEvents(): Promise<CalendarEvent[]> {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return mockEvents;
+  }
 
-  joinClass: async (courseId: string): Promise<void> => {
-    return new Promise((resolve) => {
-      setTimeout(resolve, 500);
-    });
-  },
-}; 
+  async joinClass(courseId: string): Promise<void> {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log(`Joined class: ${courseId}`);
+  }
+}
+
+export const dashboardService = new DashboardService(); 
