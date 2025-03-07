@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import womenPower from '../assets/Women Power - Mobile.png';
 import Navbar from '../components/Navbar';
+import ChatBot from '../components/ChatBot';
 
 const ROTATE_WORDS = ['CODE', 'CREATE', 'LEARN', 'GROW'];
 const TECH_STACK = ['React', 'Node.js', 'Python', 'TypeScript', 'MongoDB', 'AWS', 'Docker', 'GraphQL'];
@@ -9,7 +10,7 @@ const TECH_STACK = ['React', 'Node.js', 'Python', 'TypeScript', 'MongoDB', 'AWS'
 const Home = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [wordIndex, setWordIndex] = useState(0);
-  const [techIndex, setTechIndex] = useState(0);
+  const [, setTechIndex] = useState(0);
 
   useEffect(() => {
     setIsLoaded(true);
@@ -32,51 +33,46 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-ninja-black via-ninja-black/95 to-ninja-black text-ninja-white overflow-hidden">
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-from)_0%,_transparent_65%)] from-ninja-green/5" />
+    <div className="min-h-screen bg-ninja-black text-ninja-white overflow-hidden">
       <Navbar />
 
       {/* Main Content */}
       <div className="relative">
         {/* Hero Section */}
-        <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16 pt-16 md:pt-24">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 pt-24 md:pt-32 pb-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className={`space-y-8 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-              <div className="relative">
-                <div className="absolute -left-4 -top-4 w-16 h-16 bg-ninja-green/10 rounded-full blur-xl animate-pulse" />
-                <h1 className="font-monument text-5xl md:text-6xl lg:text-7xl leading-none tracking-tight">
-                  <span className="block">LEVEL UP</span>
-                  <span className="relative inline-block h-[1.2em] w-full text-ninja-green overflow-hidden" style={{ textShadow: '0 0 25px rgba(74, 222, 128, 0.25)' }}>
-                    {ROTATE_WORDS.map((word, index) => (
-                      <span
-                        key={word}
-                        className={`absolute left-0 top-0 transition-all duration-500 ${
-                          index === wordIndex 
-                            ? 'opacity-100 transform-none' 
-                            : index < wordIndex 
-                              ? 'opacity-0 translate-y-full'
-                              : 'opacity-0 -translate-y-full'
-                        }`}
-                      >
-                        {word}
-                      </span>
-                    ))}
-                  </span>
-                  <span className="relative block">
-                    YOUR WAY
-                    <div className="absolute -right-4 -bottom-4 w-12 h-12 bg-ninja-purple/20 rounded-full blur-xl animate-pulse" />
-                  </span>
-                </h1>
-                <h2 className="font-monument text-2xl md:text-3xl text-ninja-orange mt-5 leading-tight tracking-wide">
-                  MASTER THE FUTURE<br />
-                  OF TECH
-                </h2>
-              </div>
+            {/* Left Column - Text Content */}
+            <div className={`transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+              {/* Main Heading */}
+              <h1 className="font-monument text-5xl md:text-6xl lg:text-7xl leading-none tracking-tight mb-6">
+                <span className="block">LEVEL UP</span>
+                <span className="text-ninja-green block h-[1.2em] overflow-hidden">
+                  {ROTATE_WORDS.map((word, index) => (
+                    <span
+                      key={word}
+                      className={`block transition-all duration-300 ${
+                        index === wordIndex 
+                          ? 'opacity-100 transform-none' 
+                          : 'opacity-0 absolute'
+                      }`}
+                    >
+                      {word}
+                    </span>
+                  ))}
+                </span>
+                <span className="block">YOUR WAY</span>
+              </h1>
               
-              <div className="flex flex-wrap gap-4">
+              {/* Subheading */}
+              <h2 className="font-monument text-xl md:text-2xl text-ninja-orange mb-8">
+                MASTER THE FUTURE OF TECH
+              </h2>
+              
+              {/* CTA Buttons */}
+              <div className="flex flex-wrap gap-4 mb-12">
                 <Link 
                   to="/signup"
-                  className="px-7 py-3 bg-ninja-green text-ninja-black font-monument text-sm rounded-lg hover:scale-105 transition-all duration-300 shadow-lg shadow-ninja-green/20"
+                  className="px-6 py-3 bg-ninja-green text-ninja-black font-monument text-sm rounded-md hover:bg-ninja-green/90 transition-colors"
                 >
                   Start Your Journey
                 </Link>
@@ -94,30 +90,29 @@ const Home = () => {
                 </Link>
               </div>
 
-              {/* Tech Stack Ticker */}
-              <div className="relative py-4 overflow-hidden">
-                <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-ninja-black to-transparent z-10" />
-                <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-ninja-black to-transparent z-10" />
-                <div className="flex gap-6 animate-scroll">
-                  {[...TECH_STACK, ...TECH_STACK].map((tech, index) => (
-                    <span 
-                      key={index} 
-                      className="text-ninja-white/60 whitespace-nowrap font-monument text-sm"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
+              {/* Tech Stack */}
+              <div className="flex flex-wrap gap-4 text-ninja-white/60">
+                {TECH_STACK.slice(0, 6).map((tech, index) => (
+                  <span 
+                    key={index} 
+                    className="text-sm font-monument"
+                  >
+                    {tech}
+                    {index < 5 && <span className="ml-4 text-ninja-white/20">•</span>}
+                  </span>
+                ))}
               </div>
             </div>
 
-            <div className={`relative transition-all duration-1000 delay-300 ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'}`}>
-              <div className="absolute inset-0 bg-gradient-to-r from-ninja-green/10 to-ninja-purple/10 rounded-[3rem] blur-3xl animate-pulse" />
-              <img 
-                src={womenPower} 
-                alt="Women Power Illustration" 
-                className="relative w-full h-auto max-w-[500px] mx-auto lg:ml-auto animate-float p-8"
-              />
+            {/* Right Column - Image */}
+            <div className={`transition-all duration-700 delay-200 ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'}`}>
+              <div className="relative">
+                <img 
+                  src={womenPower} 
+                  alt="Women Power Illustration" 
+                  className="w-full h-auto max-w-[450px] mx-auto lg:ml-auto"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -224,6 +219,9 @@ const Home = () => {
           </div>
         </div>
       </div>
+      
+      {/* ChatBot */}
+      <ChatBot />
     </div>
   );
 };

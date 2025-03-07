@@ -22,6 +22,7 @@ export default {
         'scroll': 'scroll 20s linear infinite',
         'gradient': 'gradient 6s ease infinite',
         'bounce': 'bounce 2s ease-in-out infinite',
+        'bounce-subtle': 'bounce-subtle 3s ease-in-out infinite',
         'slide-up': 'slideUp 1s ease-out forwards',
         'slide-down': 'slideDown 0.5s ease-out forwards',
         'fade-in': 'fadeIn 0.5s ease-out forwards',
@@ -54,6 +55,10 @@ export default {
         bounce: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-5px)' }
+        },
+        'bounce-subtle': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-3px)' }
         },
         slideUp: {
           '0%': { transform: 'translateY(100px)', opacity: '0' },

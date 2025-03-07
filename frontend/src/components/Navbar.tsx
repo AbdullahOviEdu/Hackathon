@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import handsPhone1 from '../assets/Hands - Phone (1).png';
 import handsPhone2 from '../assets/Hands - Phone (2).png';
 import handsPhone3 from '../assets/Hands - Phone (3).png';
-import handsPhone4 from '../assets/Hands - Phone.png';
+import handsPhone4 from '../assets/Hands - Phone (4).png';
 
 interface NavLinkProps {
   href: string;
@@ -88,8 +88,8 @@ const Navbar = () => {
     { href: '/', icon: handsPhone1, label: 'Home' },
     { href: '/courses', icon: handsPhone2, label: 'Courses' },
     { href: '/community', icon: handsPhone3, label: 'Community' },
-    { href: '/resources', icon: handsPhone4, label: 'Resources' },
-    { href: '/student-dashboard', icon: handsPhone1, label: 'Student Dashboard' }
+    { href: '/resources', icon: handsPhone1, label: 'Resources' },
+    { href: '/student-dashboard', icon: handsPhone4, label: 'Student Dashboard' }
   ];
 
   const signInOptions = [
