@@ -211,6 +211,53 @@ const QuestionForm = ({ onSubmit, onCancel, isSubmitting }: QuestionFormProps) =
   );
 };
 
+interface ReplyFormProps {
+  postId: number;
+  onSubmit: (content: string) => Promise<void>;
+  onCancel: () => void;
+  isSubmitting: boolean;
+}
+
+const ReplyForm = ({ postId, onSubmit, onCancel, isSubmitting }: ReplyFormProps) => {
+  const [content, setContent] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await onSubmit(content);
+    setContent('');
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+      <textarea
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        placeholder="Write your answer..."
+        className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-ninja-green/50 h-32 resize-none"
+        required
+        minLength={20}
+      />
+      <div className="flex justify-end gap-4">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-white/60 hover:text-white"
+          disabled={isSubmitting}
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-ninja-green text-ninja-black rounded-lg hover:bg-ninja-green/90 disabled:opacity-50"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Posting...' : 'Post Answer'}
+        </button>
+      </div>
+    </form>
+  );
+};
+
 const Community = () => {
   const navigate = useNavigate();
   const [isLoaded, setIsLoaded] = useState(false);
@@ -224,6 +271,8 @@ const Community = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tagInput, setTagInput] = useState('');
+  const [replyingTo, setReplyingTo] = useState<number | null>(null);
+  const [isReplySubmitting, setIsReplySubmitting] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -379,6 +428,135 @@ const Community = () => {
     setShowPostForm(false);
   };
 
+  const handleReply = async (postId: number, content: string) => {
+    if (!isAuthenticated) {
+      navigate('/signin/student');
+      return;
+    }
+
+    try {
+      setIsReplySubmitting(true);
+      const newAnswer = await questionService.addAnswer(postId.toString(), content);
+      
+      // Update the posts state with the new answer
+      setPosts(currentPosts => 
+        currentPosts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              answers: [...post.answers, newAnswer]
+            };
+          }
+          return post;
+        })
+      );
+
+      toast.success('Answer posted successfully!');
+      setReplyingTo(null);
+    } catch (error) {
+      toast.error('Failed to post answer');
+      console.error('Error posting answer:', error);
+    } finally {
+      setIsReplySubmitting(false);
+    }
+  };
+
+  const handleVoteAnswer = async (postId: number, answerId: number, voteType: 'up' | 'down') => {
+    if (!isAuthenticated) {
+      navigate('/signin/student');
+      return;
+    }
+
+    // Get the current vote state before updating
+    const currentPost = posts.find(p => p.id === postId);
+    const currentAnswer = currentPost?.answers.find(a => a.id === answerId);
+    
+    if (!currentAnswer) {
+      toast.error('Answer not found');
+      return;
+    }
+
+    try {
+      // Calculate vote change based on previous vote state
+      let voteChange = voteType === 'up' ? 1 : -1;
+      if (currentAnswer.isUserVoted === voteType) {
+        // Clicking the same button again - remove the vote
+        voteChange = voteType === 'up' ? -1 : 1;
+      } else if (currentAnswer.isUserVoted) {
+        // Changing vote from up to down or vice versa
+        voteChange = voteType === 'up' ? 2 : -2;
+      }
+
+      // Store the current state for rollback
+      const previousState = JSON.parse(JSON.stringify(posts));
+
+      // Optimistically update the UI
+      setPosts(currentPosts => 
+        currentPosts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              answers: post.answers.map(answer => {
+                if (answer.id === answerId) {
+                  const newVoteState = answer.isUserVoted === voteType ? null : voteType;
+                  return {
+                    ...answer,
+                    votes: answer.votes + voteChange,
+                    isUserVoted: newVoteState
+                  };
+                }
+                return answer;
+              })
+            };
+          }
+          return post;
+        })
+      );
+
+      // Make API call with string IDs
+      const result = await questionService.voteAnswer(
+        postId.toString(),
+        answerId.toString(),
+        voteType
+      );
+
+      // Update with actual server response
+      setPosts(currentPosts => 
+        currentPosts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              answers: post.answers.map(answer => {
+                if (answer.id === answerId) {
+                  return {
+                    ...answer,
+                    votes: result.votes,
+                    isUserVoted: result.isUserVoted
+                  };
+                }
+                return answer;
+              })
+            };
+          }
+          return post;
+        })
+      );
+
+      // Show success message if vote changed
+      if (result.votes !== currentAnswer.votes) {
+        toast.success(result.message || 'Vote recorded successfully!');
+      }
+    } catch (error) {
+      console.error('Vote error:', error);
+      
+      // Revert to previous state on error
+      setPosts(previousState);
+      
+      // Show error message
+      toast.error(error instanceof Error ? error.message : 'Failed to vote on answer');
+    }
+  };
+
   const topMembers = [
     { name: 'Alex Chen', avatar: 'A', role: 'Full Stack Ninja', contributions: 156 },
     { name: 'Lisa Wang', avatar: 'L', role: 'Frontend Master', contributions: 142 },
@@ -406,91 +584,153 @@ const Community = () => {
     }
   ];
 
+  const filterPosts = (posts: Post[]) => {
+    return posts
+      // Search query filter
+      .filter(post => {
+        if (!searchQuery) return true;
+        const searchLower = searchQuery.toLowerCase();
+        return (
+          post.title.toLowerCase().includes(searchLower) ||
+          post.content.toLowerCase().includes(searchLower) ||
+          post.author.toLowerCase().includes(searchLower) ||
+          post.tags.some(tag => tag.toLowerCase().includes(searchLower)) ||
+          post.answers.some(answer => 
+            answer.content.toLowerCase().includes(searchLower) ||
+            answer.author.toLowerCase().includes(searchLower)
+          )
+        );
+      })
+      // Category filter
+      .filter(post => {
+        if (selectedCategory === 'all') return true;
+        return post.category.toLowerCase() === selectedCategory;
+      })
+      // Time filter
+      .filter(post => {
+        const postDate = new Date(post.createdAt);
+        const now = new Date();
+        switch (timeFilter) {
+          case 'day':
+            return (now.getTime() - postDate.getTime()) / (1000 * 3600 * 24) <= 1;
+          case 'week':
+            return (now.getTime() - postDate.getTime()) / (1000 * 3600 * 24 * 7) <= 1;
+          case 'month':
+            return (
+              postDate.getMonth() === now.getMonth() &&
+              postDate.getFullYear() === now.getFullYear()
+            );
+          default:
+            return true;
+        }
+      })
+      // Sort posts
+      .sort((a, b) => {
+        switch (sortBy) {
+          case 'newest':
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          case 'popular':
+            return (b.votes + b.answers.length) - (a.votes + a.answers.length);
+          case 'unanswered':
+            return a.answers.length - b.answers.length;
+          default:
+            return 0;
+        }
+      });
+  };
+
   const QuestionsList = () => {
+    if (!isLoaded) {
+      return (
+        <div className="space-y-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="backdrop-blur-xl bg-white/5 rounded-xl p-6 animate-pulse">
+              <div className="h-4 bg-white/10 rounded w-3/4 mb-4"></div>
+              <div className="h-4 bg-white/10 rounded w-1/2"></div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (posts.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <p className="text-ninja-white/60">No questions found</p>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-6">
-        {/* Search and Filter Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="col-span-1 sm:col-span-2 lg:col-span-2">
-            <input
-              type="text"
-              placeholder="Search questions..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-ninja-green/50 transition-all"
-            />
-          </div>
-          <CustomDropdown
-            options={timeFilters}
-            value={timeFilter}
-            onChange={setTimeFilter}
-            className="w-full"
-          />
-          <CustomDropdown
-            options={categories.map(cat => ({ value: cat.toLowerCase(), label: cat }))}
-            value={selectedCategory}
-            onChange={setSelectedCategory}
-            className="w-full"
-          />
-        </div>
+        {posts.map((post) => (
+          <div
+            key={post.id}
+            className="backdrop-blur-xl bg-white/5 rounded-xl p-6 transition-all duration-500 hover:bg-white/10"
+          >
+            <div className="flex gap-4">
+              {/* Voting */}
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  onClick={() => handleVote(post.id, 'up')}
+                  className={`p-1 rounded ${post.isUserVoted === 'up' ? 'text-ninja-green' : 'text-white/60 hover:text-white'}`}
+                >
+                  ▲
+                </button>
+                <span className={`text-sm font-medium ${post.votes >= 0 ? 'text-ninja-green' : 'text-red-500'}`}>
+                  {post.votes}
+                </span>
+                <button
+                  onClick={() => handleVote(post.id, 'down')}
+                  className={`p-1 rounded ${post.isUserVoted === 'down' ? 'text-red-500' : 'text-white/60 hover:text-white'}`}
+                >
+                  ▼
+                </button>
+              </div>
 
-        {/* Questions Grid */}
-        <div className="grid grid-cols-1 gap-4">
-          {posts.map((post) => (
-            <div
-              key={post.id}
-              className="bg-white/5 rounded-xl p-4 sm:p-6 hover:bg-white/10 transition-all cursor-pointer border border-white/10"
-              onClick={() => navigate(`/question/${post.id}`)}
-            >
-              <div className="flex flex-col sm:flex-row gap-4">
-                {/* Vote and Stats Column */}
-                <div className="flex sm:flex-col items-center sm:items-start gap-4 sm:gap-6 sm:w-20">
-                  <div className="flex sm:flex-col items-center gap-2">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleVote(post.id, 'up');
-                      }}
-                      className={`p-1 rounded transition-colors ${
-                        post.isUserVoted === 'up' ? 'text-ninja-green' : 'text-white/40 hover:text-white/60'
-                      }`}
-                    >
-                      ▲
-                    </button>
-                    <span className="font-medium">{post.votes}</span>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleVote(post.id, 'down');
-                      }}
-                      className={`p-1 rounded transition-colors ${
-                        post.isUserVoted === 'down' ? 'text-ninja-orange' : 'text-white/40 hover:text-white/60'
-                      }`}
-                    >
-                      ▼
-                    </button>
-                  </div>
-                  <div className="flex sm:flex-col items-center text-sm text-white/60">
-                    <span className="hidden sm:block">{post.answers.length} answers</span>
-                    <span className="hidden sm:block">{post.views} views</span>
+              {/* Content */}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-ninja-green to-ninja-purple flex items-center justify-center text-xs">
+                    {post.avatar}
                   </div>
                 </div>
+                
+                <h3 className="font-monument text-lg mb-2">{post.title}</h3>
+                <p className="text-ninja-white/80 mb-4">{post.content}</p>
+                
+                <div className="flex items-center gap-4">
+                  <span className="px-3 py-1 bg-white/5 rounded-full text-xs text-ninja-green">
+                    {post.category}
+                  </span>
+                  <span className="text-sm text-ninja-white/60">
+                    {post.answers.length} answers
+                  </span>
+                </div>
 
-                {/* Content Column */}
-                <div className="flex-1">
-                  <h3 className="text-lg font-medium mb-2 line-clamp-2">{post.title}</h3>
-                  <p className="text-white/60 text-sm mb-4 line-clamp-2">{post.content}</p>
-                  
-                  <div className="flex flex-wrap items-center gap-2 mb-4">
-                    {post.tags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 bg-white/5 rounded text-xs text-white/80"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+                {/* Answers */}
+                <div className="mt-6 space-y-4">
+                  {post.answers.map((answer) => (
+                    <div key={answer.id} className="pl-8 border-l border-white/10">
+                      <div className="flex gap-4">
+                        {/* Answer Voting */}
+                        <div className="flex flex-col items-center gap-2">
+                          <button
+                            onClick={() => handleVote(post.id, 'up', true, answer.id)}
+                            className={`p-1 rounded ${answer.isUserVoted === 'up' ? 'text-ninja-green' : 'text-white/60 hover:text-white'}`}
+                          >
+                            ▲
+                          </button>
+                          <span className={`text-sm font-medium ${answer.votes >= 0 ? 'text-ninja-green' : 'text-red-500'}`}>
+                            {answer.votes}
+                          </span>
+                          <button
+                            onClick={() => handleVote(post.id, 'down', true, answer.id)}
+                            className={`p-1 rounded ${answer.isUserVoted === 'down' ? 'text-red-500' : 'text-white/60 hover:text-white'}`}
+                          >
+                            ▼
+                          </button>
+                        </div>
 
                   <div className="flex items-center justify-between text-sm text-white/60">
                     <div className="flex items-center gap-2">
@@ -501,8 +741,7 @@ const Community = () => {
                       />
                       <span>{post.author}</span>
                     </div>
-                    <span>{post.createdAt}</span>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
