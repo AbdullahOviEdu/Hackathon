@@ -12,7 +12,11 @@ import {
   FiUserPlus,
   FiCheck
 } from 'react-icons/fi';
+<<<<<<< Updated upstream
 import { toast } from 'react-toastify';
+=======
+import { FaRobot, FaMicrophone } from 'react-icons/fa';
+>>>>>>> Stashed changes
 
 // Components
 import Navbar from '../../components/Navbar';
@@ -225,6 +229,24 @@ const TeacherDashboardPage: React.FC = () => {
                 <span className="font-monument text-sm">{label}</span>
               </button>
             ))}
+            <Link
+              to="/teacher/learning-bot"
+              className={`flex items-center px-6 py-3 text-ninja-white/80 hover:bg-ninja-green/10 hover:text-ninja-white transition-colors ${
+                location.pathname === '/teacher/learning-bot' ? 'bg-ninja-green/10 text-ninja-white' : ''
+              }`}
+            >
+              <FaRobot className="w-5 h-5 mr-3" />
+              <span className="font-bold">Learning Bot</span>
+            </Link>
+            <Link
+              to="/teacher/voice-assistant"
+              className={`flex items-center px-6 py-3 text-ninja-white/80 hover:bg-ninja-green/10 hover:text-ninja-white transition-colors ${
+                location.pathname === '/teacher/voice-assistant' ? 'bg-ninja-green/10 text-ninja-white' : ''
+              }`}
+            >
+              <FaMicrophone className="w-5 h-5 mr-3" />
+              <span className="font-bold">Voice Assistant</span>
+            </Link>
             <button
               onClick={handleLogout}
               className="w-full px-6 py-3 flex items-center text-ninja-white/80 hover:bg-ninja-green/10 hover:text-ninja-white transition-colors mt-auto"

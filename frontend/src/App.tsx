@@ -16,9 +16,14 @@ import Analytics from './pages/Analytics';
 import CourseDetails from './pages/CourseDetails';
 import StudentDashboard from './dashboard/StudentDashboard/StudentDashboard';
 import TeacherDashboardPage from './pages/dashboard/TeacherDashboardPage';
+<<<<<<< Updated upstream
 import TeacherConnections from './pages/dashboard/TeacherConnections';
 import StudentDashboardLayout from './layouts/StudentDashboardLayout';
 import StudentCourses from './pages/StudentCourses';
+=======
+import TeacherLearningBot from './pages/dashboard/TeacherLearningBot';
+import TeacherVoiceAssistant from './pages/dashboard/TeacherVoiceAssistant';
+>>>>>>> Stashed changes
 
 const App = () => {
   return (
@@ -35,6 +40,7 @@ const App = () => {
         <Route path="/courses" element={<Courses />} />
         <Route path="/course/:id" element={<CourseDetails />} />
         <Route path="/community" element={<Community />} />
+<<<<<<< Updated upstream
         
         {/* Student Dashboard Routes */}
         <Route path="/student-dashboard" element={<StudentDashboardLayout />}>
@@ -48,6 +54,17 @@ const App = () => {
 
         {/* Teacher Dashboard Route */}
         <Route path="/teacher/dashboard/*" element={<TeacherDashboardPage />} />
+=======
+        <Route path="/student-dashboard" element={<StudentDashboard />} />
+        <Route path="/student-dashboard/messages" element={<Messages />} />
+        <Route path="/student-dashboard/connections" element={<Connections />} />
+        <Route path="/student-dashboard/meetings" element={<Meetings />} />
+        <Route path="/student-dashboard/settings" element={<Settings />} />
+        <Route path="/student-dashboard/analytics" element={<Analytics />} />
+        <Route path="/teacher/dashboard" element={<TeacherDashboardPage />} />
+        <Route path="/teacher/learning-bot" element={<TeacherLearningBot />} />
+        <Route path="/teacher/voice-assistant" element={<TeacherVoiceAssistant />} />
+>>>>>>> Stashed changes
       </Routes>
     </Router>
   );
