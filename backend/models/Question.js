@@ -14,8 +14,13 @@ const QuestionSchema = new mongoose.Schema({
   },
   user: {
     type: mongoose.Schema.ObjectId,
-    ref: 'User',
+    refPath: 'userModel',
     required: true
+  },
+  userModel: {
+    type: String,
+    required: true,
+    enum: ['Student', 'Teacher']
   },
   tags: [{
     type: String,
@@ -28,13 +33,23 @@ const QuestionSchema = new mongoose.Schema({
     },
     user: {
       type: mongoose.Schema.ObjectId,
-      ref: 'User',
+      refPath: 'answers.userModel',
       required: true
+    },
+    userModel: {
+      type: String,
+      required: true,
+      enum: ['Student', 'Teacher']
     },
     votes: [{
       user: {
         type: mongoose.Schema.ObjectId,
-        ref: 'User'
+        refPath: 'answers.votes.userModel'
+      },
+      userModel: {
+        type: String,
+        required: true,
+        enum: ['Student', 'Teacher']
       },
       value: {
         type: Number,
@@ -49,7 +64,12 @@ const QuestionSchema = new mongoose.Schema({
   votes: [{
     user: {
       type: mongoose.Schema.ObjectId,
-      ref: 'User'
+      refPath: 'votes.userModel'
+    },
+    userModel: {
+      type: String,
+      required: true,
+      enum: ['Student', 'Teacher']
     },
     value: {
       type: Number,

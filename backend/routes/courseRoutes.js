@@ -16,7 +16,6 @@ const router = express.Router();
 
 // Public routes
 router.get('/', getCourses);
-router.get('/:id', getCourse);
 
 // Protected routes
 router.use(protect);
@@ -29,5 +28,8 @@ router.get('/enrollment/:courseId', authorize('student'), checkEnrollment);
 // Teacher routes
 router.post('/', authorize('teacher'), createCourse);
 router.get('/teacher/courses', authorize('teacher'), getTeacherCourses);
+
+// This generic route should come last
+router.get('/:id', getCourse);
 
 module.exports = router; 

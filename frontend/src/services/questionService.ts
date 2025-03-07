@@ -15,11 +15,10 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json'
   },
-  // Remove withCredentials as it's not needed for token-based auth
   timeout: 10000
 });
 
-// Request interceptor
+// Add request interceptor to add auth token
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = getAuthToken();
@@ -33,21 +32,22 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Response interceptor
+// Add response interceptor for better error handling
 axiosInstance.interceptors.response.use(
-  (response) => {
-    // Check if the response has the expected structure
-    if (response.data && response.data.success && response.data.data) {
-      return response.data;
-    }
-    return response;
-  },
+  (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('student_token');
-      localStorage.removeItem('teacher_token');
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      const message = error.response.data?.message || 'An error occurred';
+      throw new Error(message);
+    } else if (error.request) {
+      // The request was made but no response was received
+      throw new Error('No response received from server');
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      throw new Error('Error setting up the request');
     }
-    return Promise.reject(error);
   }
 );
 
@@ -55,18 +55,10 @@ axiosInstance.interceptors.response.use(
 export const getQuestions = async () => {
   try {
     const response = await axiosInstance.get('/');
-    // The response interceptor has already processed the data
-    return response.data || [];
+    return response.data.data || [];
   } catch (error) {
     console.error('Error in getQuestions:', error);
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        throw new Error(error.response.data?.message || 'Failed to fetch questions');
-      } else if (error.request) {
-        throw new Error('No response received from server');
-      }
-    }
-    throw new Error('Network error occurred');
+    throw error;
   }
 };
 
@@ -86,18 +78,28 @@ export const getQuestion = async (id: string) => {
 // Create question
 export const createQuestion = async (questionData: {
   title: string;
-  description: string;
-  category: string;
+  content: string;
   tags?: string[];
 }) => {
   try {
-    const response = await axiosInstance.post('/', questionData);
+    // Validate required fields
+    if (!questionData.title || !questionData.title.trim()) {
+      throw new Error('Title is required');
+    }
+    if (!questionData.content || !questionData.content.trim()) {
+      throw new Error('Content is required');
+    }
+
+    const response = await axiosInstance.post('/', {
+      ...questionData,
+      title: questionData.title.trim(),
+      content: questionData.content.trim(),
+      tags: questionData.tags || []
+    });
     return response.data.data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || 'Failed to create question');
-    }
-    throw new Error('Network error occurred');
+    console.error('Error in createQuestion:', error);
+    throw error;
   }
 };
 

@@ -98,8 +98,7 @@ interface Answer {
 
 interface QuestionFormData {
   title: string;
-  description: string;
-  category: string;
+  content: string;
   tags: string[];
 }
 
@@ -112,8 +111,7 @@ interface QuestionFormProps {
 const QuestionForm = ({ onSubmit, onCancel, isSubmitting }: QuestionFormProps) => {
   const [formState, setFormState] = useState<QuestionFormData>({
     title: '',
-    description: '',
-    category: 'React',
+    content: '',
     tags: []
   });
   const [tagInput, setTagInput] = useState('');
@@ -136,16 +134,14 @@ const QuestionForm = ({ onSubmit, onCancel, isSubmitting }: QuestionFormProps) =
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await onSubmit(formState);
-  };
-
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-ninja-black/95 p-6 rounded-xl w-full max-w-2xl mx-4" onClick={e => e.stopPropagation()}>
         <h2 className="font-monument text-2xl mb-6">Ask a Question</h2>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={async (e) => {
+          e.preventDefault();
+          await onSubmit(formState);
+        }}>
           <div className="space-y-4">
             <div>
               <label htmlFor="title" className="block text-sm mb-2">Title</label>
@@ -162,27 +158,13 @@ const QuestionForm = ({ onSubmit, onCancel, isSubmitting }: QuestionFormProps) =
                 maxLength={200}
               />
             </div>
+
             <div>
-              <label htmlFor="category" className="block text-sm mb-2">Category</label>
-              <select
-                id="category"
-                name="category"
-                value={formState.category}
-                onChange={handleChange}
-                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-ninja-green/50"
-                required
-              >
-                {['React', 'Node.js', 'Python', 'JavaScript', 'DevOps', 'Career', 'Other'].map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="description" className="block text-sm mb-2">Details</label>
+              <label htmlFor="content" className="block text-sm mb-2">Details</label>
               <textarea
-                id="description"
-                name="description"
-                value={formState.description}
+                id="content"
+                name="content"
+                value={formState.content}
                 onChange={handleChange}
                 className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-ninja-green/50 h-32 resize-none"
                 placeholder="Provide more details about your question..."
@@ -190,6 +172,7 @@ const QuestionForm = ({ onSubmit, onCancel, isSubmitting }: QuestionFormProps) =
                 minLength={20}
               />
             </div>
+
             <div>
               <label htmlFor="tags" className="block text-sm mb-2">Tags (optional)</label>
               <input
@@ -203,6 +186,7 @@ const QuestionForm = ({ onSubmit, onCancel, isSubmitting }: QuestionFormProps) =
               />
               <p className="text-xs text-white/40 mt-1">Separate tags with commas</p>
             </div>
+
             <div className="flex justify-end gap-4">
               <button
                 type="button"
@@ -244,8 +228,7 @@ const Community = () => {
   // Form state
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
-    category: 'React',
+    content: '',
     tags: [] as string[]
   });
 

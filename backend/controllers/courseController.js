@@ -59,16 +59,41 @@ exports.getTeacherCourses = asyncHandler(async (req, res, next) => {
 // @route   GET /api/courses/:id
 // @access  Public
 exports.getCourse = asyncHandler(async (req, res, next) => {
-  const course = await Course.findById(req.params.id).populate('teacher', 'fullName institution subject');
+  try {
+    const course = await Course.findById(req.params.id)
+      .populate({
+        path: 'teacher',
+        select: 'fullName institution subject',
+        model: 'Teacher'
+      })
+      .populate({
+        path: 'enrolledStudents',
+        select: 'fullName',
+        model: 'Student'
+      });
 
-  if (!course) {
-    return next(new ErrorResponse(`Course not found with id of ${req.params.id}`, 404));
+    if (!course) {
+      return next(new ErrorResponse(`Course not found with id of ${req.params.id}`, 404));
+    }
+
+    // Convert the mongoose document to a plain object
+    const courseObj = course.toObject();
+
+    // Add virtual fields
+    courseObj.students = course.enrolledStudents?.length || 0;
+
+    res.status(200).json({
+      success: true,
+      data: courseObj
+    });
+  } catch (error) {
+    // Check if this is a CastError (invalid ObjectId)
+    if (error.name === 'CastError') {
+      return next(new ErrorResponse(`Invalid course ID format: ${req.params.id}`, 400));
+    }
+    // Handle other potential errors
+    return next(new ErrorResponse('Error retrieving course', 500));
   }
-
-  res.status(200).json({
-    success: true,
-    data: course
-  });
 });
 
 // @desc    Update course
@@ -153,7 +178,18 @@ exports.deleteCourse = async (req, res) => {
 // @access  Private (Student only)
 exports.enrollCourse = asyncHandler(async (req, res, next) => {
   const { courseId } = req.body;
+
+  // Verify that the user is a student
+  if (req.user.role !== 'student') {
+    return next(new ErrorResponse('Only students can enroll in courses', 403));
+  }
+
   const studentId = req.user.id;
+
+  // Validate courseId
+  if (!courseId) {
+    return next(new ErrorResponse('Please provide a course ID', 400));
+  }
 
   const course = await Course.findById(courseId).populate('teacher', 'fullName');
   if (!course) {
@@ -165,27 +201,32 @@ exports.enrollCourse = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Already enrolled in this course', 400));
   }
 
-  // Add student to course
-  course.enrolledStudents.push(studentId);
-  await course.save();
+  try {
+    // Add student to course
+    course.enrolledStudents.push(studentId);
+    await course.save();
 
-  // Get student details
-  const student = await Student.findById(studentId).select('fullName');
+    // Get student details
+    const student = await Student.findById(studentId).select('fullName');
 
-  // Create notification for teacher
-  await Notification.create({
-    teacher: course.teacher._id,
-    type: 'enrollment',
-    title: 'New Course Enrollment',
-    message: `${student.fullName} has enrolled in your course: ${course.title}`,
-    courseId: course._id,
-    studentId: studentId
-  });
+    // Create notification for teacher
+    await Notification.create({
+      teacher: course.teacher._id,
+      type: 'enrollment',
+      title: 'New Course Enrollment',
+      message: `${student.fullName} has enrolled in your course: ${course.title}`,
+      courseId: course._id,
+      studentId: studentId
+    });
 
-  res.status(200).json({
-    success: true,
-    message: 'Successfully enrolled in course'
-  });
+    res.status(200).json({
+      success: true,
+      message: 'Successfully enrolled in course'
+    });
+  } catch (error) {
+    console.error('Error in course enrollment:', error);
+    return next(new ErrorResponse('Error enrolling in course', 500));
+  }
 });
 
 // @desc    Check enrollment status

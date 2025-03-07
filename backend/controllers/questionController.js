@@ -7,8 +7,14 @@ const ErrorResponse = require('../utils/errorResponse');
 // @access  Public
 exports.getQuestions = asyncHandler(async (req, res, next) => {
   const questions = await Question.find()
-    .populate('user', 'fullName')
-    .populate('answers.user', 'fullName')
+    .populate({
+      path: 'user',
+      select: 'fullName email'
+    })
+    .populate({
+      path: 'answers.user',
+      select: 'fullName email'
+    })
     .sort({ createdAt: -1 });
 
   res.status(200).json({
@@ -23,8 +29,14 @@ exports.getQuestions = asyncHandler(async (req, res, next) => {
 // @access  Public
 exports.getQuestion = asyncHandler(async (req, res, next) => {
   const question = await Question.findById(req.params.id)
-    .populate('user', 'fullName')
-    .populate('answers.user', 'fullName');
+    .populate({
+      path: 'user',
+      select: 'fullName email'
+    })
+    .populate({
+      path: 'answers.user',
+      select: 'fullName email'
+    });
 
   if (!question) {
     return next(new ErrorResponse(`Question not found with id of ${req.params.id}`, 404));
@@ -41,6 +53,7 @@ exports.getQuestion = asyncHandler(async (req, res, next) => {
 // @access  Private
 exports.createQuestion = asyncHandler(async (req, res, next) => {
   req.body.user = req.user.id;
+  req.body.userModel = req.user.role === 'student' ? 'Student' : 'Teacher';
 
   const question = await Question.create(req.body);
 
@@ -111,7 +124,8 @@ exports.addAnswer = asyncHandler(async (req, res, next) => {
 
   const answer = {
     content: req.body.content,
-    user: req.user.id
+    user: req.user.id,
+    userModel: req.user.role === 'student' ? 'Student' : 'Teacher'
   };
 
   question.answers.push(answer);
@@ -195,6 +209,7 @@ exports.voteQuestion = asyncHandler(async (req, res, next) => {
 
   const vote = req.body.vote; // 1 for upvote, -1 for downvote
   const userId = req.user.id;
+  const userModel = req.user.role === 'student' ? 'Student' : 'Teacher';
 
   // Check if user has already voted
   const existingVote = question.votes.find(v => v.user.toString() === userId);
@@ -209,7 +224,7 @@ exports.voteQuestion = asyncHandler(async (req, res, next) => {
     }
   } else {
     // Add new vote
-    question.votes.push({ user: userId, value: vote });
+    question.votes.push({ user: userId, userModel, value: vote });
   }
 
   await question.save();

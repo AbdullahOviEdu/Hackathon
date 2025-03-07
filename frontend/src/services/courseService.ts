@@ -21,15 +21,18 @@ export interface CourseData {
 
 // Get auth token from localStorage
 const getToken = () => {
-  const token = localStorage.getItem('teacher_token');
-  return token ? `Bearer ${token}` : '';
+  const token = localStorage.getItem('student_token') || localStorage.getItem('teacher_token');
+  if (!token) {
+    throw new Error('Authentication required. Please sign in.');
+  }
+  return `Bearer ${token}`;
 };
 
 // Get student token from localStorage
 const getStudentToken = () => {
   const token = localStorage.getItem('student_token');
   if (!token) {
-    throw new Error('No authentication token found. Please sign in.');
+    throw new Error('Please sign in as a student to access this feature');
   }
   return `Bearer ${token}`;
 };
@@ -69,13 +72,32 @@ export const getAllCourses = async (): Promise<CourseData[]> => {
 // Get a single course by ID (public)
 export const getCourseById = async (id: string): Promise<CourseData> => {
   try {
-    const response = await axios.get(`${API_URL}/${id}`);
+    const response = await axios.get(`${API_URL}/${id}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!response.data || !response.data.data) {
+      throw new Error('Invalid response format from server');
+    }
+
     return response.data.data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || 'Failed to fetch course');
+    console.error('Error fetching course:', error);
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 404) {
+        throw new Error('Course not found');
+      } else if (error.response?.status === 400) {
+        throw new Error('Invalid course ID format');
+      } else if (error.response) {
+        throw new Error(error.response.data?.message || `Failed to fetch course: ${error.response.status}`);
+      } else if (error.request) {
+        throw new Error('No response received from server. Please check if the server is running.');
+      }
     }
-    throw new Error('Network error occurred');
+    throw new Error('Network error occurred while fetching course');
   }
 };
 
@@ -146,19 +168,33 @@ export const deleteCourse = async (id: string): Promise<void> => {
   }
 };
 
-// Enroll in a course (private - student only)
+// Enroll in a course (student only)
 export const enrollCourse = async (courseId: string): Promise<void> => {
   try {
-    const token = getStudentToken();
-    await axios.post(`${API_URL}/enroll`, { courseId }, {
-      headers: {
-        Authorization: token
+    const token = getStudentToken(); // Ensure student token exists
+    const response = await axios.post(
+      `${API_URL}/enroll`,
+      { courseId },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token
+        }
       }
-    });
+    );
+
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to enroll in course');
+    }
   } catch (error) {
+    console.error('Error enrolling in course:', error);
     if (axios.isAxiosError(error)) {
       if (error.response?.status === 401) {
-        throw new Error('Please sign in to enroll in this course');
+        throw new Error('Please sign in as a student to enroll in this course');
+      } else if (error.response?.status === 403) {
+        throw new Error('Only students can enroll in courses');
+      } else if (error.response?.status === 400) {
+        throw new Error(error.response.data.message || 'Invalid enrollment request');
       }
       throw new Error(error.response?.data?.message || 'Failed to enroll in course');
     }
