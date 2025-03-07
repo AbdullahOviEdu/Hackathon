@@ -12,6 +12,35 @@ interface NavLinkProps {
   isActive?: boolean;
 }
 
+interface DropdownButtonProps {
+  label: string;
+  className?: string;
+  options: { label: string; href: string }[];
+}
+
+const DropdownButton = ({ label, className = '', options }: DropdownButtonProps) => {
+  return (
+    <div className="relative group">
+      <button
+        className={className}
+      >
+        {label}
+      </button>
+      <div className="absolute right-0 mt-2 w-48 bg-ninja-black/95 backdrop-blur-md border border-ninja-white/10 rounded-lg overflow-hidden shadow-xl z-50 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+        {options.map((option) => (
+          <Link
+            key={option.label}
+            to={option.href}
+            className="block px-4 py-2 text-sm text-ninja-white/80 hover:bg-ninja-white/5 transition-colors"
+          >
+            {option.label}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const NavLink = ({ href, icon, label, isActive }: NavLinkProps) => {
   return (
     <div className="relative group">
@@ -63,6 +92,16 @@ const Navbar = () => {
     { href: '/teacher-dashboard', icon: handsPhone1, label: 'Teacher Dashboard' }
   ];
 
+  const signInOptions = [
+    { label: 'Sign in as Student', href: '/signin/student' },
+    { label: 'Sign in as Teacher', href: '/signin/teacher' }
+  ];
+
+  const signUpOptions = [
+    { label: 'Sign up as Student', href: '/signup/student' },
+    { label: 'Sign up as Teacher', href: '/signup/teacher' }
+  ];
+
   // Set to false to show auth buttons
   const isAuthenticated = false;
 
@@ -87,7 +126,7 @@ const Navbar = () => {
           </div>
 
           {/* Right side with auth buttons */}
-          <div className="flex-1 flex justify-end">
+          <div className="flex-1 flex justify-end gap-2">
             {isAuthenticated ? (
               <button className="hidden md:flex items-center gap-2 px-4 py-2 text-ninja-white/60 hover:text-ninja-white transition-colors">
                 <span>🔔</span>
@@ -95,19 +134,16 @@ const Navbar = () => {
               </button>
             ) : (
               <>
-                <Link 
-                  to="/signin"
+                <DropdownButton 
+                  label="Sign In"
+                  options={signInOptions}
                   className="hidden md:block px-6 py-2.5 text-ninja-white/80 font-monument text-sm hover:text-ninja-white transition-colors"
-                >
-                  Sign In
-                </Link>
-                <Link 
-                  to="/signup"
+                />
+                <DropdownButton 
+                  label="Sign Up"
+                  options={signUpOptions}
                   className="hidden md:block relative px-6 py-2.5 bg-ninja-green text-ninja-black font-monument text-sm rounded-lg overflow-hidden group"
-                >
-                  <span className="relative z-10 transition-colors group-hover:text-ninja-white">Sign Up</span>
-                  <div className="absolute inset-0 bg-ninja-purple transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
-                </Link>
+                />
               </>
             )}
           </div>
@@ -137,31 +173,71 @@ const Navbar = () => {
             ? 'opacity-100 translate-y-0 visible'
             : 'opacity-0 -translate-y-4 invisible'
         }`}>
-          <div className="bg-ninja-black/95 backdrop-blur-md border-t border-b border-ninja-white/10">
+          <div className="bg-ninja-black/95 backdrop-blur-md border-t border-b border-ninja-white/10 shadow-xl">
             <div className="max-w-7xl mx-auto px-4 py-6">
-              <div className="grid grid-cols-2 gap-8">
-                {navLinks.map((link) => (
-                  <NavLink 
-                    key={link.label}
-                    {...link}
-                    isActive={location.pathname === link.href}
-                  />
+              <div className="grid grid-cols-2 gap-8 mb-8">
+                {navLinks.map((link, index) => (
+                  <div 
+                    key={link.label} 
+                    className={`transition-all duration-300 transform ${
+                      isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+                    }`} 
+                    style={{ transitionDelay: `${index * 50}ms` }}
+                  >
+                    <NavLink 
+                      {...link}
+                      isActive={location.pathname === link.href}
+                    />
+                  </div>
                 ))}
               </div>
               {!isAuthenticated && (
-                <div className="mt-6 grid grid-cols-2 gap-4">
-                  <Link
-                    to="/signin" 
-                    className="block w-full px-6 py-3 border border-ninja-white/10 text-ninja-white/80 font-monument text-sm rounded-lg hover:bg-white/5 transition-all duration-300 text-center"
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    to="/signup" 
-                    className="block w-full px-6 py-3 bg-gradient-to-r from-ninja-green to-ninja-purple text-ninja-black font-monument text-sm rounded-lg hover:from-ninja-purple hover:to-ninja-green transition-all duration-500 text-center"
-                  >
-                    Sign Up
-                  </Link>
+                <div className="mt-6">
+                  {/* Sign In Section */}
+                  <div className={`mb-6 transition-all duration-300 transform ${
+                    isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+                  }`} style={{ transitionDelay: `${navLinks.length * 50 + 50}ms` }}>
+                    <div className="flex items-center mb-3 px-2">
+                      <div className="w-1 h-4 bg-ninja-purple rounded-full mr-2"></div>
+                      <div className="text-ninja-white font-monument text-sm">Sign In</div>
+                    </div>
+                    <div className="bg-ninja-black/30 rounded-lg overflow-hidden border border-ninja-white/5">
+                      {signInOptions.map((option, index) => (
+                        <Link
+                          key={option.label}
+                          to={option.href}
+                          className="flex items-center px-4 py-3 text-sm text-ninja-white/80 hover:bg-ninja-white/5 transition-colors border-b border-ninja-white/5 last:border-b-0 hover:pl-5"
+                          style={{ transitionDelay: `${navLinks.length * 50 + 100 + index * 50}ms` }}
+                        >
+                          <span className="w-2 h-2 bg-ninja-purple/50 rounded-full mr-2"></span>
+                          {option.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Sign Up Section */}
+                  <div className={`transition-all duration-300 transform ${
+                    isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+                  }`} style={{ transitionDelay: `${navLinks.length * 50 + 200}ms` }}>
+                    <div className="flex items-center mb-3 px-2">
+                      <div className="w-1 h-4 bg-ninja-green rounded-full mr-2"></div>
+                      <div className="text-ninja-white font-monument text-sm">Sign Up</div>
+                    </div>
+                    <div className="bg-ninja-black/30 rounded-lg overflow-hidden border border-ninja-white/5">
+                      {signUpOptions.map((option, index) => (
+                        <Link
+                          key={option.label}
+                          to={option.href}
+                          className="flex items-center px-4 py-3 text-sm text-ninja-white/80 hover:bg-ninja-white/5 transition-colors border-b border-ninja-white/5 last:border-b-0 hover:pl-5"
+                          style={{ transitionDelay: `${navLinks.length * 50 + 250 + index * 50}ms` }}
+                        >
+                          <span className="w-2 h-2 bg-ninja-green/50 rounded-full mr-2"></span>
+                          {option.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
