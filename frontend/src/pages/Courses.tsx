@@ -1,12 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 
 const CATEGORIES = ['All', 'Frontend', 'Backend', 'Full Stack', 'DevOps', 'Mobile'];
 
 const Courses = () => {
-  const [isLoaded, setIsLoaded] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
 
   // Sample courses data
   const courses = [
@@ -125,11 +129,7 @@ const Courses = () => {
               <Link
                 to={`/course/${course.id}`}
                 key={course.id}
-                className={`group backdrop-blur-xl bg-white/5 rounded-xl p-6 transition-all duration-500 hover:bg-white/10 transform hover:scale-[1.02] ${
-                  isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                }`}
-                style={{ transitionDelay: `${index * 100}ms` }}
-                onLoad={() => setIsLoaded(true)}
+                className="group backdrop-blur-xl bg-white/5 rounded-xl p-6 transition-all duration-500 hover:bg-white/10 transform hover:scale-[1.02]"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="text-4xl">{course.image}</div>

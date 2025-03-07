@@ -59,7 +59,8 @@ const Navbar = () => {
     { href: '/', icon: handsPhone1, label: 'Home' },
     { href: '/courses', icon: handsPhone2, label: 'Courses' },
     { href: '/community', icon: handsPhone3, label: 'Community' },
-    { href: '/resources', icon: handsPhone4, label: 'Resources' }
+    { href: '/resources', icon: handsPhone4, label: 'Resources' },
+    { href: '/teacher-dashboard', icon: handsPhone1, label: 'Teacher Dashboard' }
   ];
 
   // Set to false to show auth buttons

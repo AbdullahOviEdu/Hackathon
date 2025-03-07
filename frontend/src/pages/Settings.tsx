@@ -1,9 +1,38 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { FiUser, FiBell, FiLock, FiGlobe, FiMoon, FiSave } from 'react-icons/fi';
 import Navbar from '../components/Navbar';
 
-const Settings = () => {
+interface NotificationSetting {
+  id: string;
+  title: string;
+  description: string;
+  enabled: boolean;
+}
+
+const Settings: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
+  const [darkMode, setDarkMode] = useState(true);
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSetting[]>([
+    {
+      id: 'class_reminder',
+      title: 'Class Reminders',
+      description: 'Get notified 30 minutes before class starts',
+      enabled: true,
+    },
+    {
+      id: 'messages',
+      title: 'New Messages',
+      description: 'Get notified when you receive new messages',
+      enabled: true,
+    },
+    {
+      id: 'assignments',
+      title: 'Assignment Updates',
+      description: 'Get notified about new assignments and deadlines',
+      enabled: false,
+    },
+  ]);
 
   // Sample user data - replace with actual data from your backend
   const userData = {
@@ -22,6 +51,21 @@ const Settings = () => {
       timezone: 'UTC-8'
     }
   };
+
+  const handleNotificationToggle = (id: string) => {
+    setNotificationSettings(prev =>
+      prev.map(setting =>
+        setting.id === id ? { ...setting, enabled: !setting.enabled } : setting
+      )
+    );
+  };
+
+  const tabs = [
+    { id: 'profile', icon: FiUser, label: 'Profile' },
+    { id: 'notifications', icon: FiBell, label: 'Notifications' },
+    { id: 'security', icon: FiLock, label: 'Security' },
+    { id: 'appearance', icon: FiGlobe, label: 'Appearance' },
+  ];
 
   // Tab content components
   const ProfileTab = () => (
@@ -189,17 +233,17 @@ const Settings = () => {
 
         {/* Navigation Tabs */}
         <div className="flex space-x-4 mt-12 mb-8 border-b border-white/10">
-          {['profile', 'notifications', 'preferences', 'security'].map((tab) => (
+          {tabs.map(({ id, icon: Icon }) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+              key={id}
+              onClick={() => setActiveTab(id)}
               className={`px-4 py-2 font-monument text-sm transition-all ${
-                activeTab === tab
+                activeTab === id
                   ? 'text-ninja-green border-b-2 border-ninja-green'
                   : 'text-ninja-white/60 hover:text-ninja-white'
               }`}
             >
-              {tab.toUpperCase()}
+              <Icon className="w-5 h-5" />
             </button>
           ))}
         </div>
@@ -213,8 +257,8 @@ const Settings = () => {
             }`}>
               {activeTab === 'profile' && <ProfileTab />}
               {activeTab === 'notifications' && <NotificationsTab />}
-              {activeTab === 'preferences' && <PreferencesTab />}
               {activeTab === 'security' && <SecurityTab />}
+              {activeTab === 'appearance' && <PreferencesTab />}
             </div>
           </div>
 
