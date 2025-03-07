@@ -1,22 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiClock, FiUsers, FiCalendar } from 'react-icons/fi';
 import { toast } from 'react-toastify';
-import { getCourseById, CourseData } from '../services/courseService';
+import { getCourseById, CourseData, enrollCourse, isEnrolled } from '../services/courseService';
 import { isAuthenticated } from '../services/authService';
 import Navbar from '../components/Navbar';
 
 const CourseDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [course, setCourse] = useState<CourseData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [enrolling, setEnrolling] = useState(false);
+  const [isUserEnrolled, setIsUserEnrolled] = useState(false);
   const userAuthenticated = isAuthenticated();
 
   useEffect(() => {
     if (id) {
       fetchCourse(id);
+      if (userAuthenticated) {
+        checkEnrollmentStatus(id);
+      }
     }
-  }, [id]);
+  }, [id, userAuthenticated]);
 
   const fetchCourse = async (courseId: string) => {
     try {
@@ -27,6 +33,36 @@ const CourseDetails: React.FC = () => {
       toast.error(error instanceof Error ? error.message : 'Failed to fetch course details');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkEnrollmentStatus = async (courseId: string) => {
+    try {
+      const enrolled = await isEnrolled(courseId);
+      setIsUserEnrolled(enrolled);
+    } catch (error) {
+      console.error('Error checking enrollment status:', error);
+    }
+  };
+
+  const handleEnroll = async () => {
+    if (!userAuthenticated) {
+      navigate('/signin/student');
+      return;
+    }
+
+    if (!id || enrolling) return;
+
+    try {
+      setEnrolling(true);
+      await enrollCourse(id);
+      setIsUserEnrolled(true);
+      toast.success('Successfully enrolled in the course!');
+      navigate('/student-dashboard');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to enroll in course');
+    } finally {
+      setEnrolling(false);
     }
   };
 
@@ -132,9 +168,25 @@ const CourseDetails: React.FC = () => {
               <h2 className="text-xl font-monument text-ninja-white mb-4">Enroll in this course</h2>
               
               {userAuthenticated ? (
-                <button className="w-full py-3 px-4 bg-gradient-to-r from-ninja-purple to-ninja-green text-ninja-black font-monument rounded-lg hover:from-ninja-green hover:to-ninja-purple transition-all duration-500">
-                  Enroll Now
-                </button>
+                isUserEnrolled ? (
+                  <div>
+                    <div className="text-ninja-green mb-4">You are enrolled in this course</div>
+                    <Link
+                      to="/student-dashboard"
+                      className="w-full py-3 px-4 bg-gradient-to-r from-ninja-purple to-ninja-green text-ninja-black font-monument rounded-lg hover:from-ninja-green hover:to-ninja-purple transition-all duration-500 block text-center"
+                    >
+                      Go to Dashboard
+                    </Link>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleEnroll}
+                    disabled={enrolling}
+                    className="w-full py-3 px-4 bg-gradient-to-r from-ninja-purple to-ninja-green text-ninja-black font-monument rounded-lg hover:from-ninja-green hover:to-ninja-purple transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {enrolling ? 'Enrolling...' : 'Enroll Now'}
+                  </button>
+                )
               ) : (
                 <div>
                   <div className="text-ninja-white/60 mb-4">Sign in to enroll in this course</div>

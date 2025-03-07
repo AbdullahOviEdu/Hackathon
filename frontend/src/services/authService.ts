@@ -81,9 +81,18 @@ export const loginStudent = async (email: string, password: string) => {
     const response = await axios.post(`${API_URL}/student/login`, { email, password });
     
     if (response.data.token) {
+      // Clear any existing tokens first
+      localStorage.clear();
+      
+      // Set new tokens and user data
       localStorage.setItem('student_token', response.data.token);
       localStorage.setItem('user_type', 'student');
       localStorage.setItem('student_data', JSON.stringify(response.data.data));
+      
+      // Set default Authorization header for future requests
+      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+    } else {
+      throw new Error('No token received from server');
     }
     
     return response.data;

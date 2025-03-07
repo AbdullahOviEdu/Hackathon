@@ -24,10 +24,18 @@ const Courses: React.FC = () => {
     try {
       setLoading(true);
       const data = await getAllCourses();
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid data format received from server');
+      }
       setCourses(data);
       setFilteredCourses(data);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to fetch courses');
+      console.error('Error in fetchCourses:', error);
+      if (error instanceof Error) {
+        toast.error(`Error: ${error.message}`);
+      } else {
+        toast.error('An unexpected error occurred while fetching courses');
+      }
     } finally {
       setLoading(false);
     }
@@ -85,7 +93,7 @@ const Courses: React.FC = () => {
             />
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap gap-2">
             <div className="flex items-center gap-2 text-ninja-white/60 text-sm">
               <FiFilter />
               <span>Filter:</span>
@@ -109,20 +117,25 @@ const Courses: React.FC = () => {
         {/* Courses Grid */}
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="text-ninja-green font-monument">Loading courses...</div>
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-ninja-green"></div>
+            <div className="ml-3 text-ninja-white">Loading courses...</div>
           </div>
         ) : filteredCourses.length === 0 ? (
           <div className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg p-8 text-center">
-            <div className="text-ninja-white/60 mb-4">No courses found matching your criteria.</div>
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedGrade('');
-              }}
-              className="px-4 py-2 bg-ninja-green/10 text-ninja-green text-sm rounded-lg hover:bg-ninja-green hover:text-ninja-black transition-colors"
-            >
-              Clear Filters
-            </button>
+            <div className="text-ninja-white/60 mb-4">
+              {searchQuery || selectedGrade ? 'No courses found matching your criteria.' : 'No courses available at the moment.'}
+            </div>
+            {(searchQuery || selectedGrade) && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedGrade('');
+                }}
+                className="px-4 py-2 bg-ninja-green/10 text-ninja-green text-sm rounded-lg hover:bg-ninja-green hover:text-ninja-black transition-colors"
+              >
+                Clear Filters
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

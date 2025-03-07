@@ -1,11 +1,12 @@
 const express = require('express');
 const {
-  createCourse,
   getCourses,
-  getTeacherCourses,
   getCourse,
-  updateCourse,
-  deleteCourse
+  createCourse,
+  enrollCourse,
+  checkEnrollment,
+  getEnrolledCourses,
+  getTeacherCourses
 } = require('../controllers/courseController');
 
 // Middleware
@@ -17,10 +18,16 @@ const router = express.Router();
 router.get('/', getCourses);
 router.get('/:id', getCourse);
 
-// Protected routes (teacher only)
-router.post('/', protect, authorize('teacher'), createCourse);
-router.get('/teacher/courses', protect, authorize('teacher'), getTeacherCourses);
-router.put('/:id', protect, authorize('teacher'), updateCourse);
-router.delete('/:id', protect, authorize('teacher'), deleteCourse);
+// Protected routes
+router.use(protect);
+
+// Student routes
+router.post('/enroll', authorize('student'), enrollCourse);
+router.get('/enrolled', authorize('student'), getEnrolledCourses);
+router.get('/enrollment/:courseId', authorize('student'), checkEnrollment);
+
+// Teacher routes
+router.post('/', authorize('teacher'), createCourse);
+router.get('/teacher/courses', authorize('teacher'), getTeacherCourses);
 
 module.exports = router; 

@@ -10,13 +10,15 @@ import Settings from './pages/Settings';
 import Resources from './pages/Resources';
 import Courses from './pages/Courses';
 import Community from './pages/Community';
-import Messages from './pages/Messages';
 import Connections from './pages/Connections';
 import Meetings from './pages/Meetings';
 import Analytics from './pages/Analytics';
 import CourseDetails from './pages/CourseDetails';
 import StudentDashboard from './dashboard/StudentDashboard/StudentDashboard';
 import TeacherDashboardPage from './pages/dashboard/TeacherDashboardPage';
+import TeacherConnections from './pages/dashboard/TeacherConnections';
+import StudentDashboardLayout from './layouts/StudentDashboardLayout';
+import StudentCourses from './pages/StudentCourses';
 
 const App = () => {
   return (
@@ -33,13 +35,19 @@ const App = () => {
         <Route path="/courses" element={<Courses />} />
         <Route path="/course/:id" element={<CourseDetails />} />
         <Route path="/community" element={<Community />} />
-        <Route path="/student-dashboard" element={<StudentDashboard />} />
-        <Route path="/student-dashboard/messages" element={<Messages />} />
-        <Route path="/student-dashboard/connections" element={<Connections />} />
-        <Route path="/student-dashboard/meetings" element={<Meetings />} />
-        <Route path="/student-dashboard/settings" element={<Settings />} />
-        <Route path="/student-dashboard/analytics" element={<Analytics />} />
-        <Route path="/teacher/dashboard" element={<TeacherDashboardPage />} />
+        
+        {/* Student Dashboard Routes */}
+        <Route path="/student-dashboard" element={<StudentDashboardLayout />}>
+          <Route index element={<StudentDashboard />} />
+          <Route path="courses" element={<StudentCourses />} />
+          <Route path="connections" element={<Connections />} />
+          <Route path="meetings" element={<Meetings />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="analytics" element={<Analytics />} />
+        </Route>
+
+        {/* Teacher Dashboard Route */}
+        <Route path="/teacher/dashboard/*" element={<TeacherDashboardPage />} />
       </Routes>
     </Router>
   );

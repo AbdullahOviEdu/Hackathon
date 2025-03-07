@@ -2,6 +2,7 @@ import axios from 'axios';
 import { CourseData } from './courseService';
 
 const API_URL = 'http://localhost:5000/api/students';
+const COURSES_API_URL = 'http://localhost:5000/api/courses';
 
 // Interface for Student
 export interface StudentData {
@@ -24,14 +25,19 @@ const getToken = () => {
 // Get student profile
 export const getStudentProfile = async (): Promise<StudentData> => {
   try {
+    console.log('Fetching student profile...');
+    console.log('Token:', getToken());
     const response = await axios.get(`${API_URL}/me`, {
       headers: {
         Authorization: getToken()
       }
     });
+    console.log('Profile response:', response.data);
     return response.data.data;
   } catch (error) {
+    console.error('Error in getStudentProfile:', error);
     if (axios.isAxiosError(error) && error.response) {
+      console.error('Response error:', error.response.data);
       throw new Error(error.response.data.message || 'Failed to fetch profile');
     }
     throw new Error('Network error occurred');
@@ -58,15 +64,28 @@ export const updateStudentProfile = async (profileData: Partial<StudentData>): P
 // Get enrolled courses
 export const getEnrolledCourses = async (): Promise<CourseData[]> => {
   try {
-    const response = await axios.get(`${API_URL}/courses`, {
+    const token = getToken();
+    if (!token) {
+      throw new Error('Authentication required. Please sign in.');
+    }
+
+    const response = await axios.get(`${COURSES_API_URL}/enrolled`, {
       headers: {
-        Authorization: getToken()
+        Authorization: token
       }
     });
+    console.log('Enrolled courses response:', response.data);
     return response.data.data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || 'Failed to fetch enrolled courses');
+    console.error('Error in getEnrolledCourses:', error);
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401) {
+        throw new Error('Please sign in to view your enrolled courses');
+      }
+      if (error.response?.status === 404) {
+        return []; // Return empty array if no courses found
+      }
+      throw new Error(error.response?.data?.message || 'Failed to fetch enrolled courses');
     }
     throw new Error('Network error occurred');
   }
@@ -75,7 +94,7 @@ export const getEnrolledCourses = async (): Promise<CourseData[]> => {
 // Enroll in a course
 export const enrollCourse = async (courseId: string): Promise<void> => {
   try {
-    await axios.post(`${API_URL}/courses/${courseId}/enroll`, {}, {
+    await axios.post(`${COURSES_API_URL}/enroll`, { courseId }, {
       headers: {
         Authorization: getToken()
       }
@@ -91,7 +110,7 @@ export const enrollCourse = async (courseId: string): Promise<void> => {
 // Unenroll from a course
 export const unenrollCourse = async (courseId: string): Promise<void> => {
   try {
-    await axios.delete(`${API_URL}/courses/${courseId}/enroll`, {
+    await axios.delete(`${COURSES_API_URL}/enrollment/${courseId}`, {
       headers: {
         Authorization: getToken()
       }

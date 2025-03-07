@@ -1,12 +1,28 @@
 export interface Course {
   id: string;
   name: string;
+  title: string;
   class: string;
+  grade: string;
   time: string;
   meetingLink: string;
   description?: string;
   instructor?: string;
   thumbnail?: string;
+  duration?: string;
+  teacher?: {
+    _id?: string;
+    fullName: string;
+    institution?: string;
+    subject?: string;
+  };
+  enrolledStudents?: {
+    _id: string;
+    fullName: string;
+    email: string;
+    grade: string;
+    school: string;
+  }[];
 }
 
 export interface Student {
@@ -22,6 +38,8 @@ export interface Activity {
   title: string;
   description: string;
   timestamp: Date;
+  isNotification?: boolean;
+  read?: boolean;
 }
 
 export interface DashboardStats {
