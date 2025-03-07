@@ -4,6 +4,9 @@ export interface Course {
   class: string;
   time: string;
   meetingLink: string;
+  description?: string;
+  instructor?: string;
+  thumbnail?: string;
 }
 
 export interface Student {
@@ -15,23 +18,23 @@ export interface Student {
 
 export interface Activity {
   id: string;
-  type: 'assignment' | 'attendance' | 'message' | 'grade' | 'class';
+  type: 'class' | 'assignment' | 'message' | 'notification';
   title: string;
   description: string;
   timestamp: Date;
-  status?: 'submitted' | 'pending' | 'graded';
 }
 
 export interface DashboardStats {
-  totalStudents: number;
-  activeCourses: number;
-  averagePerformance: number;
+  totalStudents: string;
+  activeCourses: string;
+  teachingHours: string;
+  courseProgress: string;
 }
 
 export interface CalendarEvent {
   id: string;
   title: string;
-  date: Date;
+  date: string;
   type: 'class' | 'exam' | 'assignment' | 'meeting';
-  details: string;
+  description?: string;
 } 
