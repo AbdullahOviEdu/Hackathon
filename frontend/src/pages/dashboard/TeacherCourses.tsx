@@ -1,127 +1,138 @@
 import React, { useState, useEffect } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiClock } from 'react-icons/fi';
-import { dashboardService } from '../../services/dashboardService';
-import { Course } from '../../types/dashboard';
+import { toast } from 'react-toastify';
+import { getTeacherCourses, deleteCourse, CourseData } from '../../services/courseService';
+import AddCourse from './AddCourse';
 
 const TeacherCourses: React.FC = () => {
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<CourseData[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        setLoading(true);
-        const coursesData = await dashboardService.getCourses();
-        setCourses(coursesData);
-      } catch (error) {
-        console.error('Error fetching courses:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchCourses();
   }, []);
+
+  const fetchCourses = async () => {
+    try {
+      setLoading(true);
+      const data = await getTeacherCourses();
+      setCourses(data);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to fetch courses');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddCourse = () => {
     setShowAddModal(true);
   };
 
-  const handleEditCourse = (courseId: string) => {
-    console.log('Edit course:', courseId);
+  const handleCourseAdded = (newCourse: CourseData) => {
+    setCourses(prev => [newCourse, ...prev]);
   };
 
-  const handleDeleteCourse = (courseId: string) => {
-    console.log('Delete course:', courseId);
+  const handleDeleteCourse = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this course?')) {
+      try {
+        setIsDeleting(id);
+        await deleteCourse(id);
+        setCourses(prev => prev.filter(course => course._id !== id));
+        toast.success('Course deleted successfully');
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Failed to delete course');
+      } finally {
+        setIsDeleting(null);
+      }
+    }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-ninja-green font-monument">Loading...</div>
+        <div className="text-ninja-green font-monument">Loading courses...</div>
       </div>
     );
   }
 
   return (
     <div className="p-8">
-      {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-2xl font-monument text-ninja-white mb-2">Your Courses</h1>
-          <p className="text-ninja-white/60">Manage and organize your teaching courses</p>
-        </div>
+        <h1 className="text-2xl font-monument text-ninja-white">Your Courses</h1>
         <button
           onClick={handleAddCourse}
-          className="px-4 py-2 bg-ninja-green text-ninja-black rounded-lg font-monument text-sm hover:bg-ninja-purple hover:text-ninja-white transition-colors flex items-center gap-2"
+          className="flex items-center px-4 py-2 bg-gradient-to-r from-ninja-purple to-ninja-green text-ninja-black font-monument text-sm rounded-lg hover:from-ninja-green hover:to-ninja-purple transition-all duration-500"
         >
-          <FiPlus className="w-4 h-4" />
+          <FiPlus className="mr-2" />
           Add New Course
         </button>
       </div>
 
-      {/* Course Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {courses.map((course) => (
-          <div
-            key={course.id}
-            className="bg-ninja-black/95 border border-ninja-white/10 rounded-lg p-6 hover:border-ninja-green/50 transition-colors"
+      {courses.length === 0 ? (
+        <div className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg p-8 text-center">
+          <div className="text-ninja-white/60 mb-4">You haven't created any courses yet.</div>
+          <button
+            onClick={handleAddCourse}
+            className="px-4 py-2 bg-ninja-green/10 text-ninja-green text-sm rounded-lg hover:bg-ninja-green hover:text-ninja-black transition-colors"
           >
-            <div className="flex justify-between items-start mb-4">
-              <div className="text-4xl">{course.thumbnail || '📚'}</div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleEditCourse(course.id)}
-                  className="p-2 hover:bg-ninja-green/10 rounded-full text-ninja-white/80 hover:text-ninja-green transition-colors"
-                >
-                  <FiEdit2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDeleteCourse(course.id)}
-                  className="p-2 hover:bg-ninja-purple/10 rounded-full text-ninja-white/80 hover:text-ninja-purple transition-colors"
-                >
-                  <FiTrash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            <h3 className="font-monument text-lg text-ninja-white mb-2">{course.name}</h3>
-            <p className="text-sm text-ninja-white/60 mb-4">{course.description || 'No description available'}</p>
-
-            <div className="flex items-center gap-4 text-sm text-ninja-white/80">
-              <div className="flex items-center gap-1">
-                <FiUsers className="w-4 h-4 text-ninja-green" />
-                <span>{course.class}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <FiClock className="w-4 h-4 text-ninja-purple" />
-                <span>{course.time}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Add Course Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-ninja-black/80 flex items-center justify-center p-4">
-          <div className="bg-ninja-black/95 border border-ninja-white/10 rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-monument text-ninja-white mb-4">Add New Course</h2>
-            {/* Add course form will go here */}
-            <div className="flex justify-end gap-4">
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 text-ninja-white/60 hover:text-ninja-white"
-              >
-                Cancel
-              </button>
-              <button className="px-4 py-2 bg-ninja-green text-ninja-black rounded-lg font-monument text-sm hover:bg-ninja-purple hover:text-ninja-white transition-colors">
-                Add Course
-              </button>
-            </div>
-          </div>
+            Create Your First Course
+          </button>
         </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {courses.map((course) => (
+            <div
+              key={course._id}
+              className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg overflow-hidden hover:border-ninja-green/30 transition-colors"
+            >
+              <div className="h-48 overflow-hidden">
+                <img
+                  src={course.thumbnail}
+                  alt={course.title}
+                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                />
+              </div>
+              <div className="p-6">
+                <h3 className="text-lg font-monument text-ninja-white mb-2">{course.title}</h3>
+                <p className="text-ninja-white/60 text-sm mb-4 line-clamp-2">{course.description}</p>
+                <div className="flex items-center justify-between text-xs text-ninja-white/60 mb-4">
+                  <div className="flex items-center">
+                    <FiUsers className="mr-1" />
+                    <span>{course.grade}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <FiClock className="mr-1" />
+                    <span>{course.duration}</span>
+                  </div>
+                </div>
+                <div className="flex justify-between">
+                  <button
+                    className="px-3 py-2 bg-ninja-purple/10 text-ninja-purple rounded hover:bg-ninja-purple/20 transition-colors"
+                    onClick={() => {/* Edit functionality will be added later */}}
+                  >
+                    <FiEdit2 />
+                  </button>
+                  <button
+                    className="px-3 py-2 bg-red-500/10 text-red-500 rounded hover:bg-red-500/20 transition-colors"
+                    onClick={() => handleDeleteCourse(course._id!)}
+                    disabled={isDeleting === course._id}
+                  >
+                    {isDeleting === course._id ? '...' : <FiTrash2 />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showAddModal && (
+        <AddCourse
+          onClose={() => setShowAddModal(false)}
+          onCourseAdded={handleCourseAdded}
+        />
       )}
     </div>
   );

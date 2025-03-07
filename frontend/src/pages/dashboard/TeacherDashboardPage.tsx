@@ -159,9 +159,6 @@ const TeacherDashboardPage: React.FC = () => {
     }
   };
 
-  const toggleNotifications = () => {
-    setShowNotifications(!showNotifications);
-  };
 
   const handleLogout = () => {
     localStorage.clear();

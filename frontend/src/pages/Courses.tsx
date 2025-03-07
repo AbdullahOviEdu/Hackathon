@@ -1,177 +1,176 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { FiSearch, FiFilter, FiClock, FiUsers } from 'react-icons/fi';
+import { toast } from 'react-toastify';
+import { getAllCourses, CourseData } from '../services/courseService';
 import Navbar from '../components/Navbar';
 
-const CATEGORIES = ['All', 'Frontend', 'Backend', 'Full Stack', 'DevOps', 'Mobile'];
-
-const Courses = () => {
-  const [activeCategory, setActiveCategory] = useState('All');
-  const [isLoaded, setIsLoaded] = useState(false);
+const Courses: React.FC = () => {
+  const [courses, setCourses] = useState<CourseData[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<CourseData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedGrade, setSelectedGrade] = useState<string>('');
 
   useEffect(() => {
-    setIsLoaded(true);
+    fetchCourses();
   }, []);
 
-  // Sample courses data
-  const courses = [
-    {
-      id: 1,
-      title: 'Complete Full Stack Development',
-      category: 'Full Stack',
-      level: 'Intermediate',
-      duration: '12 weeks',
-      rating: 4.9,
-      students: '2.5k',
-      image: '🚀',
-      tags: ['React', 'Node.js', 'MongoDB'],
-      instructor: 'Alex Chen'
-    },
-    {
-      id: 2,
-      title: 'Advanced React Patterns',
-      category: 'Frontend',
-      level: 'Advanced',
-      duration: '6 weeks',
-      rating: 4.8,
-      students: '1.8k',
-      image: '⚛️',
-      tags: ['React', 'TypeScript', 'Redux'],
-      instructor: 'Sarah Johnson'
-    },
-    {
-      id: 3,
-      title: 'Node.js Microservices',
-      category: 'Backend',
-      level: 'Advanced',
-      duration: '8 weeks',
-      rating: 4.7,
-      students: '1.2k',
-      image: '🔧',
-      tags: ['Node.js', 'Docker', 'Kubernetes'],
-      instructor: 'Mike Wilson'
-    },
-    {
-      id: 4,
-      title: 'DevOps Engineering',
-      category: 'DevOps',
-      level: 'Intermediate',
-      duration: '10 weeks',
-      rating: 4.9,
-      students: '950',
-      image: '🛠️',
-      tags: ['AWS', 'CI/CD', 'Docker'],
-      instructor: 'Emma Davis'
-    },
-    {
-      id: 5,
-      title: 'React Native Mobile Apps',
-      category: 'Mobile',
-      level: 'Intermediate',
-      duration: '8 weeks',
-      rating: 4.8,
-      students: '1.5k',
-      image: '📱',
-      tags: ['React Native', 'Mobile', 'APIs'],
-      instructor: 'David Kim'
-    },
-    {
-      id: 6,
-      title: 'Frontend Development Mastery',
-      category: 'Frontend',
-      level: 'Beginner',
-      duration: '10 weeks',
-      rating: 4.9,
-      students: '3.2k',
-      image: '🎨',
-      tags: ['HTML', 'CSS', 'JavaScript'],
-      instructor: 'Lisa Chen'
+  useEffect(() => {
+    filterCourses();
+  }, [searchQuery, selectedGrade, courses]);
+
+  const fetchCourses = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllCourses();
+      setCourses(data);
+      setFilteredCourses(data);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to fetch courses');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const filterCourses = () => {
+    let filtered = [...courses];
+    
+    // Filter by search query
+    if (searchQuery) {
+      filtered = filtered.filter(course => 
+        course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        course.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    // Filter by grade
+    if (selectedGrade) {
+      filtered = filtered.filter(course => course.grade === selectedGrade);
+    }
+    
+    setFilteredCourses(filtered);
+  };
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleGradeFilter = (grade: string) => {
+    setSelectedGrade(grade === selectedGrade ? '' : grade);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-ninja-black via-ninja-black/95 to-ninja-black text-ninja-white">
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-from)_0%,_transparent_65%)] from-ninja-green/5" />
+    <div className="min-h-screen bg-ninja-black">
       <Navbar />
-
-      <main className="relative max-w-7xl mx-auto px-4 md:px-8 lg:px-16 pt-16 md:pt-24">
-        {/* Header */}
-        <div className={`transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <h1 className="font-monument text-4xl md:text-5xl mb-4">
-            Explore Our <span className="text-ninja-green">Courses</span>
-          </h1>
+      
+      <div className="pt-24 px-4 md:px-8 lg:px-16 max-w-7xl mx-auto">
+        <div className="mb-12">
+          <h1 className="text-4xl font-monument text-ninja-white mb-4">Explore Courses</h1>
           <p className="text-ninja-white/60 max-w-2xl">
-            Level up your skills with our comprehensive courses. From frontend to backend, beginner to advanced, we've got you covered.
+            Discover a wide range of courses taught by expert teachers. Find the perfect course to enhance your learning journey.
           </p>
         </div>
-
-        {/* Categories */}
-        <div className="flex flex-wrap gap-4 mt-12">
-          {CATEGORIES.map((category) => (
-            <button
-              key={category}
-              onClick={() => setActiveCategory(category)}
-              className={`px-6 py-2 rounded-full font-monument text-sm transition-all duration-300 ${
-                activeCategory === category
-                  ? 'bg-ninja-green text-ninja-black'
-                  : 'bg-white/5 text-ninja-white/60 hover:bg-white/10'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-
-        {/* Course Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-          {courses
-            .filter(course => activeCategory === 'All' || course.category === activeCategory)
-            .map((course, index) => (
-              <Link
-                to={`/course/${course.id}`}
-                key={course.id}
-                className="group backdrop-blur-xl bg-white/5 rounded-xl p-6 transition-all duration-500 hover:bg-white/10 transform hover:scale-[1.02]"
+        
+        {/* Search and Filters */}
+        <div className="flex flex-col md:flex-row gap-4 mb-12">
+          <div className="flex-1 relative">
+            <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-ninja-white/40" />
+            <input
+              type="text"
+              placeholder="Search courses..."
+              value={searchQuery}
+              onChange={handleSearch}
+              className="w-full pl-12 pr-4 py-3 bg-ninja-black/50 border border-ninja-white/10 rounded-lg focus:outline-none focus:border-ninja-purple text-ninja-white placeholder-ninja-white/40"
+            />
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 text-ninja-white/60 text-sm">
+              <FiFilter />
+              <span>Filter:</span>
+            </div>
+            {['Elementary', 'Middle School', 'High School', 'College'].map(grade => (
+              <button
+                key={grade}
+                onClick={() => handleGradeFilter(grade)}
+                className={`px-4 py-2 rounded-lg text-sm ${
+                  selectedGrade === grade
+                    ? 'bg-ninja-purple text-ninja-white'
+                    : 'bg-ninja-black/50 border border-ninja-white/10 text-ninja-white/60 hover:text-ninja-white'
+                } transition-colors`}
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="text-4xl">{course.image}</div>
-                  <div className="flex items-center gap-1 text-ninja-green">
-                    <span>⭐</span>
-                    <span className="font-monument">{course.rating}</span>
+                {grade}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        {/* Courses Grid */}
+        {loading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-ninja-green font-monument">Loading courses...</div>
+          </div>
+        ) : filteredCourses.length === 0 ? (
+          <div className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg p-8 text-center">
+            <div className="text-ninja-white/60 mb-4">No courses found matching your criteria.</div>
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedGrade('');
+              }}
+              className="px-4 py-2 bg-ninja-green/10 text-ninja-green text-sm rounded-lg hover:bg-ninja-green hover:text-ninja-black transition-colors"
+            >
+              Clear Filters
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredCourses.map((course) => (
+              <Link
+                key={course._id}
+                to={`/course/${course._id}`}
+                className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg overflow-hidden hover:border-ninja-green/30 transition-colors group"
+              >
+                <div className="h-48 overflow-hidden">
+                  <img
+                    src={course.thumbnail}
+                    alt={course.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+                <div className="p-6">
+                  <h3 className="text-lg font-monument text-ninja-white mb-2 group-hover:text-ninja-green transition-colors">{course.title}</h3>
+                  <p className="text-ninja-white/60 text-sm mb-4 line-clamp-2">{course.description}</p>
+                  
+                  <div className="flex items-center justify-between text-xs text-ninja-white/60">
+                    <div className="flex items-center">
+                      <FiUsers className="mr-1" />
+                      <span>{course.grade}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <FiClock className="mr-1" />
+                      <span>{course.duration}</span>
+                    </div>
                   </div>
-                </div>
-
-                <h3 className="font-monument text-xl mb-2 group-hover:text-ninja-green transition-colors">
-                  {course.title}
-                </h3>
-
-                <div className="flex items-center gap-2 text-sm text-ninja-white/60 mb-4">
-                  <span>{course.level}</span>
-                  <span>•</span>
-                  <span>{course.duration}</span>
-                  <span>•</span>
-                  <span>{course.students} students</span>
-                </div>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {course.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2 py-1 bg-white/5 rounded-md text-xs text-ninja-white/80"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="flex items-center gap-2 pt-4 border-t border-white/10">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-ninja-green to-ninja-purple flex items-center justify-center text-sm">
-                    {course.instructor[0]}
-                  </div>
-                  <span className="text-sm text-ninja-white/80">{course.instructor}</span>
+                  
+                  {course.teacher && (
+                    <div className="mt-4 pt-4 border-t border-ninja-white/5 flex items-center">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-ninja-purple to-ninja-green flex items-center justify-center text-ninja-black font-bold text-xs mr-3">
+                        {course.teacher.fullName ? course.teacher.fullName.charAt(0) : 'T'}
+                      </div>
+                      <div>
+                        <div className="text-ninja-white text-sm">{course.teacher.fullName || 'Teacher'}</div>
+                        <div className="text-ninja-white/40 text-xs">{course.teacher.institution || 'Institution'}</div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Link>
             ))}
-        </div>
-      </main>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
