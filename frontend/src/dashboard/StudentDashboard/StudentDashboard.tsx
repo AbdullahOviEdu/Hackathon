@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiBook, FiBell, FiSearch, FiLoader } from 'react-icons/fi';
+import { FiBook, FiBell, FiSearch, FiLoader, FiAward } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link } from 'react-router-dom';
@@ -9,6 +9,14 @@ import { Course, Activity, DashboardStats, CalendarEvent } from '../../types/das
 import { getStudentProfile, getEnrolledCourses } from '../../services/studentService';
 import { StudentData } from '../../services/studentService';
 import { CourseData } from '../../services/courseService';
+
+interface TriviaQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  subject: string;
+}
 
 const StudentDashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -22,9 +30,14 @@ const StudentDashboard: React.FC = () => {
   const [notifications, setNotifications] = useState<Activity[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [studentProfile, setStudentProfile] = useState<StudentData | null>(null);
+  const [currentTrivia, setCurrentTrivia] = useState<TriviaQuestion | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [triviaLoading, setTriviaLoading] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
+    fetchDailyTrivia();
   }, []);
 
   const fetchDashboardData = async () => {
@@ -69,6 +82,56 @@ const StudentDashboard: React.FC = () => {
       setEnrolledCourses([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDailyTrivia = async () => {
+    setTriviaLoading(true);
+    try {
+      // This would normally come from your backend API
+      // For now, we'll use sample questions based on common subjects
+      const sampleQuestions: TriviaQuestion[] = [
+        {
+          id: '1',
+          question: 'Which of these is a correct way to declare a variable in JavaScript?',
+          options: ['var x = 5;', 'variable x = 5;', 'v x = 5;', 'var: x = 5;'],
+          correctAnswer: 'var x = 5;',
+          subject: 'Programming'
+        },
+        {
+          id: '2',
+          question: 'What is the primary function of photosynthesis?',
+          options: [
+            'To produce oxygen only',
+            'To convert light energy into chemical energy',
+            'To break down glucose',
+            'To absorb carbon dioxide only'
+          ],
+          correctAnswer: 'To convert light energy into chemical energy',
+          subject: 'Science'
+        },
+        {
+          id: '3',
+          question: 'What is the quadratic formula?',
+          options: [
+            'x = -b ± √(b² - 4ac) / 2a',
+            'x = -b + √(b² - 4ac)',
+            'x = -b / 2a',
+            'x = b² - 4ac'
+          ],
+          correctAnswer: 'x = -b ± √(b² - 4ac) / 2a',
+          subject: 'Mathematics'
+        }
+      ];
+
+      // Select a random question
+      const randomQuestion = sampleQuestions[Math.floor(Math.random() * sampleQuestions.length)];
+      setCurrentTrivia(randomQuestion);
+    } catch (error) {
+      console.error('Error fetching trivia:', error);
+      toast.error('Failed to load daily trivia');
+    } finally {
+      setTriviaLoading(false);
     }
   };
 
@@ -167,6 +230,17 @@ const StudentDashboard: React.FC = () => {
     }
   };
 
+  const handleAnswerSelect = (answer: string) => {
+    setSelectedAnswer(answer);
+    setShowAnswer(true);
+  };
+
+  const handleNextTrivia = () => {
+    setSelectedAnswer(null);
+    setShowAnswer(false);
+    fetchDailyTrivia();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -192,95 +266,173 @@ const StudentDashboard: React.FC = () => {
         </button>
       </div>
 
-      {/* Dashboard Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Enrolled Courses */}
-        <div className="lg:col-span-2 bg-ninja-black/50 border border-ninja-white/10 rounded-lg p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-monument text-ninja-white text-lg">Your Courses</h2>
-            <Link
-              to="/courses"
-              className="text-sm text-ninja-purple hover:text-ninja-green transition-colors"
-            >
-              Browse More Courses
-            </Link>
-          </div>
-          
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <FiLoader className="w-8 h-8 text-ninja-green animate-spin" />
-              <span className="ml-2 text-ninja-white">Loading courses...</span>
+      {/* Main Content Grid */}
+      <div className="space-y-6">
+        {/* Top Row: Courses and Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Enrolled Courses */}
+          <div className="lg:col-span-2 bg-ninja-black/50 border border-ninja-white/10 rounded-lg p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-monument text-ninja-white text-lg">Your Courses</h2>
+              <Link
+                to="/courses"
+                className="text-sm text-ninja-purple hover:text-ninja-green transition-colors"
+              >
+                Browse More Courses
+              </Link>
             </div>
-          ) : enrolledCourses.length > 0 ? (
-            <div className="space-y-4">
-              {enrolledCourses.map((course) => (
-                <div
-                  key={course._id}
-                  className="flex items-center justify-between p-4 bg-ninja-black/30 rounded-lg border border-ninja-white/5 hover:border-ninja-green/30 transition-colors"
-                >
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-ninja-purple/20 to-ninja-green/20 flex items-center justify-center mr-4">
-                      <FiBook className="text-ninja-green" />
-                    </div>
-                    <div>
-                      <div className="font-monument text-ninja-white">{course.title}</div>
-                      <div className="text-xs text-ninja-white/60">
-                        {course.grade} • {course.duration}
+            
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <FiLoader className="w-8 h-8 text-ninja-green animate-spin" />
+                <span className="ml-2 text-ninja-white">Loading courses...</span>
+              </div>
+            ) : enrolledCourses.length > 0 ? (
+              <div className="space-y-4">
+                {enrolledCourses.map((course) => (
+                  <div
+                    key={course._id}
+                    className="flex items-center justify-between p-4 bg-ninja-black/30 rounded-lg border border-ninja-white/5 hover:border-ninja-green/30 transition-colors"
+                  >
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-ninja-purple/20 to-ninja-green/20 flex items-center justify-center mr-4">
+                        <FiBook className="text-ninja-green" />
                       </div>
-                      {course.teacher && (
-                        <div className="text-xs text-ninja-white/40">
-                          Instructor: {course.teacher.fullName}
+                      <div>
+                        <div className="font-monument text-ninja-white">{course.title}</div>
+                        <div className="text-xs text-ninja-white/60">
+                          {course.grade} • {course.duration}
                         </div>
-                      )}
+                        {course.teacher && (
+                          <div className="text-xs text-ninja-white/40">
+                            Instructor: {course.teacher.fullName}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      data-course-id={course._id}
+                      onClick={() => handleJoinClass(course._id || '', course.meetingLink || '#')}
+                      className="px-4 py-2 bg-ninja-green/10 text-ninja-green text-sm rounded-lg hover:bg-ninja-green hover:text-ninja-black transition-colors"
+                    >
+                      Start Learning
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-ninja-white/60 py-8">
+                <p className="mb-4">No courses enrolled yet.</p>
+                <Link
+                  to="/courses"
+                  className="px-4 py-2 bg-ninja-green/10 text-ninja-green text-sm rounded-lg hover:bg-ninja-green hover:text-ninja-black transition-colors inline-block"
+                >
+                  Browse Courses
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Recent Activity */}
+          <div className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-monument text-ninja-white text-lg">Recent Activity</h2>
+            </div>
+            <div className="space-y-4">
+              {activities.slice(0, 5).map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-start p-4 bg-ninja-black/30 rounded-lg border border-ninja-white/5 hover:border-ninja-green/30 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-ninja-purple/20 to-ninja-green/20 flex items-center justify-center mr-4">
+                    <FiBook className="text-ninja-green" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-monument text-ninja-white">{activity.title}</div>
+                    <div className="text-xs text-ninja-white/60 mb-1">{activity.description}</div>
+                    <div className="text-xs text-ninja-white/40">
+                      {activity.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
-                  <button
-                    data-course-id={course._id}
-                    onClick={() => handleJoinClass(course._id || '', course.meetingLink || '#')}
-                    className="px-4 py-2 bg-ninja-green/10 text-ninja-green text-sm rounded-lg hover:bg-ninja-green hover:text-ninja-black transition-colors"
-                  >
-                    Start Learning
-                  </button>
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="text-center text-ninja-white/60 py-8">
-              <p className="mb-4">No courses enrolled yet.</p>
-              <Link
-                to="/courses"
-                className="px-4 py-2 bg-ninja-green/10 text-ninja-green text-sm rounded-lg hover:bg-ninja-green hover:text-ninja-black transition-colors inline-block"
-              >
-                Browse Courses
-              </Link>
-            </div>
-          )}
+          </div>
         </div>
 
-        {/* Recent Activity */}
+        {/* Bottom Row: Trivia Section */}
         <div className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="font-monument text-ninja-white text-lg">Recent Activity</h2>
-          </div>
-          <div className="space-y-4">
-            {activities.slice(0, 5).map((activity) => (
-              <div
-                key={activity.id}
-                className="flex items-start p-4 bg-ninja-black/30 rounded-lg border border-ninja-white/5 hover:border-ninja-green/30 transition-colors"
+            <div className="flex items-center">
+              <FiAward className="text-ninja-purple mr-2 text-xl" />
+              <h2 className="font-monument text-ninja-white text-lg">Daily Trivia Challenge</h2>
+            </div>
+            {showAnswer && (
+              <button
+                onClick={handleNextTrivia}
+                className="px-4 py-2 bg-ninja-purple/10 text-ninja-purple text-sm rounded-lg hover:bg-ninja-purple hover:text-ninja-black transition-colors"
               >
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-ninja-purple/20 to-ninja-green/20 flex items-center justify-center mr-4">
-                  <FiBook className="text-ninja-green" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-monument text-ninja-white">{activity.title}</div>
-                  <div className="text-xs text-ninja-white/60 mb-1">{activity.description}</div>
-                  <div className="text-xs text-ninja-white/40">
-                    {activity.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </div>
-              </div>
-            ))}
+                Next Question
+              </button>
+            )}
           </div>
+
+          {triviaLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <FiLoader className="w-8 h-8 text-ninja-green animate-spin" />
+              <span className="ml-2 text-ninja-white">Loading trivia...</span>
+            </div>
+          ) : currentTrivia ? (
+            <div className="space-y-6">
+              <div className="bg-ninja-black/30 rounded-lg p-6 border border-ninja-white/5">
+                <div className="text-sm text-ninja-purple mb-2">
+                  Subject: {currentTrivia.subject}
+                </div>
+                <h3 className="text-ninja-white text-lg mb-4">
+                  {currentTrivia.question}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {currentTrivia.options.map((option) => (
+                    <button
+                      key={option}
+                      onClick={() => handleAnswerSelect(option)}
+                      disabled={showAnswer}
+                      className={`p-4 rounded-lg text-left transition-all duration-300 ${
+                        showAnswer
+                          ? option === currentTrivia.correctAnswer
+                            ? 'bg-ninja-green/20 text-ninja-green border-ninja-green'
+                            : option === selectedAnswer
+                            ? 'bg-red-500/20 text-red-500 border-red-500'
+                            : 'bg-ninja-black/20 text-ninja-white/60 border-ninja-white/5'
+                          : 'bg-ninja-black/20 text-ninja-white border border-ninja-white/5 hover:border-ninja-purple/50 hover:bg-ninja-purple/10'
+                      } ${
+                        selectedAnswer === option ? 'border-2' : 'border'
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+                {showAnswer && (
+                  <div className="mt-6 p-4 rounded-lg bg-ninja-black/20 border border-ninja-white/5">
+                    <p className="text-ninja-white">
+                      {selectedAnswer === currentTrivia.correctAnswer ? (
+                        <span className="text-ninja-green">Correct! Well done!</span>
+                      ) : (
+                        <span className="text-red-500">
+                          Incorrect. The correct answer is {currentTrivia.correctAnswer}.
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center text-ninja-white/60 py-8">
+              No trivia questions available at the moment.
+            </div>
+          )}
         </div>
       </div>
     </div>
