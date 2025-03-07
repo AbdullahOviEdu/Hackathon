@@ -7,16 +7,11 @@ import {
   FiBarChart2, 
   FiSettings, 
   FiLogOut, 
-  FiTrendingUp, 
   FiClock,
   FiUserPlus,
   FiCheck
 } from 'react-icons/fi';
-<<<<<<< Updated upstream
-import { toast } from 'react-toastify';
-=======
 import { FaRobot, FaMicrophone } from 'react-icons/fa';
->>>>>>> Stashed changes
 
 // Components
 import Navbar from '../../components/Navbar';
@@ -31,6 +26,7 @@ import Settings from '../Settings';
 import { dashboardService } from '../../services/dashboardService';
 import { Course, Activity, DashboardStats, CalendarEvent } from '../../types/dashboard';
 import { getTeacherNotifications, markNotificationAsRead } from '../../services/teacherService';
+import { toast } from 'react-toastify';
 
 // Update the Course type to include the missing properties
 interface ExtendedCourse extends Course {

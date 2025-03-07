@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
-import { FiGrid, FiUsers, FiBook, FiMessageCircle, FiCalendar, FiSettings, FiLogOut } from 'react-icons/fi';
+import { FiGrid, FiUsers, FiBook, FiCalendar, FiSettings, FiLogOut } from 'react-icons/fi';
 import Navbar from '../components/Navbar';
 
 const StudentDashboardLayout: React.FC = () => {

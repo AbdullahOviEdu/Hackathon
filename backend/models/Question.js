@@ -3,63 +3,75 @@ const mongoose = require('mongoose');
 const QuestionSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: [true, 'Please provide a question title'],
+    required: [true, 'Please add a title'],
     trim: true,
     maxlength: [200, 'Title cannot be more than 200 characters']
   },
-  description: {
+  content: {
     type: String,
-    required: [true, 'Please provide a question description'],
-    trim: true
+    required: [true, 'Please add content'],
+    maxlength: [5000, 'Content cannot be more than 5000 characters']
   },
-  author: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Student',
+  user: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'User',
     required: true
   },
-  category: {
+  tags: [{
     type: String,
-    required: [true, 'Please provide a category'],
-    enum: ['React', 'Node.js', 'Python', 'JavaScript', 'DevOps', 'Career', 'Other']
-  },
-  votes: {
-    type: Number,
-    default: 0
-  },
+    trim: true
+  }],
   answers: [{
     content: {
       type: String,
       required: true
     },
-    author: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Student',
+    user: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User',
       required: true
     },
-    votes: {
-      type: Number,
-      default: 0
-    },
+    votes: [{
+      user: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User'
+      },
+      value: {
+        type: Number,
+        enum: [-1, 1]
+      }
+    }],
     createdAt: {
       type: Date,
       default: Date.now
-    },
-    isAccepted: {
-      type: Boolean,
-      default: false
     }
   }],
-  tags: [{
-    type: String
+  votes: [{
+    user: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User'
+    },
+    value: {
+      type: Number,
+      enum: [-1, 1]
+    }
   }],
   views: {
     type: Number,
     default: 0
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
   }
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+// Add index for better search performance
+QuestionSchema.index({ title: 'text', content: 'text' });
+
+// Virtual for vote count
+QuestionSchema.virtual('voteCount').get(function() {
+  return this.votes.reduce((total, vote) => total + vote.value, 0);
 });
 
 module.exports = mongoose.model('Question', QuestionSchema); 
