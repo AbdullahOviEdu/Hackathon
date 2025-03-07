@@ -1,7 +1,73 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { toast } from 'react-toastify';
+import * as questionService from '../services/questionService';
 
+interface DropdownOption {
+  value: string;
+  label: string;
+}
+
+interface CustomDropdownProps {
+  options: DropdownOption[];
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
+}
+
+const CustomDropdown = ({ options, value, onChange, className = '' }: CustomDropdownProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const selectedOption = options.find(opt => opt.value === value);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className={`relative ${className}`} ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-ninja-green/50 transition-all hover:bg-white/10 flex items-center justify-between gap-2"
+      >
+        <span className="truncate">{selectedOption?.label}</span>
+        <span className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} text-xs opacity-60`}>▼</span>
+      </button>
+      
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-2 bg-ninja-black/95 border border-white/10 rounded-lg shadow-xl backdrop-blur-xl overflow-hidden animate-fadeIn">
+          <div className="max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+            {options.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+                className={`w-full px-4 py-2 text-left transition-colors hover:bg-white/10 ${
+                  option.value === value 
+                    ? 'bg-white/5 text-ninja-green font-medium' 
+                    : 'text-white/80'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface Post {
   id: number;
@@ -30,272 +96,128 @@ interface Answer {
   isAccepted: boolean;
 }
 
-const Community = () => {
-  const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showPostForm, setShowPostForm] = useState(false);
-  const [sortBy, setSortBy] = useState('newest');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+interface QuestionFormData {
+  title: string;
+  description: string;
+  category: string;
+  tags: string[];
+}
 
-  // Sample data with more questions and answers
-  const [posts, setPosts] = useState<Post[]>([
-    {
-      id: 1,
-      title: 'How to implement authentication in React?',
-      content: 'I\'m building a React application and need help implementing user authentication. What\'s the best approach?',
-      author: 'Sarah Johnson',
-      avatar: 'S',
-      category: 'React',
-      votes: 42,
-      tags: ['react', 'authentication', 'security'],
-      views: 156,
-      isSaved: false,
-      answers: [
-        {
-          id: 1,
-          content: 'I recommend using Firebase Authentication. It\'s easy to set up and provides many features out of the box.',
-          author: 'Mike Wilson',
-          avatar: 'M',
-          votes: 15,
-          createdAt: '2h ago',
-          isUserVoted: null,
-          isAccepted: true
-        }
-      ],
-      createdAt: '4h ago',
-      isUserVoted: null
-    },
-    {
-      id: 2,
-      title: 'Best practices for Node.js error handling',
-      content: 'What are the recommended patterns for handling errors in a Node.js application? Should I use try-catch or error-first callbacks?',
-      author: 'David Kim',
-      avatar: 'D',
-      category: 'Node.js',
-      votes: 35,
-      tags: ['node.js', 'error-handling', 'backend'],
-      views: 203,
-      isSaved: false,
-      answers: [
-        {
-          id: 2,
-          content: 'For modern Node.js applications, I recommend using async/await with try-catch blocks. It makes the code more readable and maintainable.',
-          author: 'Alex Chen',
-          avatar: 'A',
-          votes: 22,
-          createdAt: '1h ago',
-          isUserVoted: null,
-          isAccepted: true
-        },
-        {
-          id: 3,
-          content: 'Consider using a global error handler middleware for Express applications. This helps centralize error handling logic.',
-          author: 'Emma Davis',
-          avatar: 'E',
-          votes: 18,
-          createdAt: '30m ago',
-          isUserVoted: null,
-          isAccepted: false
-        }
-      ],
-      createdAt: '6h ago',
-      isUserVoted: null
-    },
-    {
-      id: 3,
-      title: 'Python vs JavaScript for Data Science',
-      content: 'I\'m starting my journey in data science. Should I focus on Python or JavaScript? What are the pros and cons of each?',
-      author: 'Lisa Wang',
-      avatar: 'L',
-      category: 'Python',
-      votes: 28,
-      tags: ['python', 'javascript', 'data-science'],
-      views: 178,
-      isSaved: false,
-      answers: [
-        {
-          id: 4,
-          content: 'Python is generally better for data science due to libraries like NumPy, Pandas, and scikit-learn. The ecosystem is more mature for data analysis.',
-          author: 'Sarah Johnson',
-          avatar: 'S',
-          votes: 25,
-          createdAt: '45m ago',
-          isUserVoted: null,
-          isAccepted: true
-        }
-      ],
-      createdAt: '8h ago',
-      isUserVoted: null
-    },
-    {
-      id: 4,
-      title: 'Understanding DevOps CI/CD Pipeline',
-      content: 'Can someone explain the key components of a CI/CD pipeline? Looking for real-world examples and best practices.',
-      author: 'Mike Wilson',
-      avatar: 'M',
-      category: 'DevOps',
-      votes: 45,
-      tags: ['devops', 'ci-cd', 'automation'],
-      views: 245,
-      isSaved: false,
-      answers: [],
-      createdAt: '3h ago',
-      isUserVoted: null
-    }
-  ]);
+interface QuestionFormProps {
+  onSubmit: (data: QuestionFormData) => Promise<void>;
+  onCancel: () => void;
+  isSubmitting: boolean;
+}
 
-  const categories = ['All', 'React', 'Node.js', 'Python', 'JavaScript', 'DevOps', 'Career'];
-
-  useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem('authToken');
-      setIsAuthenticated(!!token);
-    };
-    checkAuth();
-  }, []);
-
-  // Helper function to convert time string to hours for sorting
-  const getHours = (timeStr: string) => {
-    const match = timeStr.match(/(\d+)h/);
-    return match ? parseInt(match[1]) : 0;
-  };
-
-  // Filter and sort posts based on current filters
-  const filteredPosts = posts.filter(post => {
-    // Search filter - case insensitive search across multiple fields
-    const searchLower = searchQuery.toLowerCase().trim();
-    const matchesSearch = !searchLower || 
-      post.title.toLowerCase().includes(searchLower) ||
-      post.content.toLowerCase().includes(searchLower) ||
-      post.tags.some(tag => tag.toLowerCase().includes(searchLower)) ||
-      post.category.toLowerCase().includes(searchLower);
-
-    // Category filter
-    const matchesCategory = selectedCategory === 'all' || 
-      post.category.toLowerCase() === selectedCategory;
-
-    // Tags filter - post must include all selected tags
-    const matchesTags = selectedTags.length === 0 || 
-      selectedTags.every(tag => post.tags.includes(tag));
-
-    return matchesSearch && matchesCategory && matchesTags;
-  }).sort((a, b) => {
-    switch (sortBy) {
-      case 'popular':
-        // Sort by votes first, then by number of answers
-        return b.votes !== a.votes ? b.votes - a.votes : b.answers.length - a.answers.length;
-      case 'unanswered':
-        // Show posts with no answers first, then sort by newest
-        if (a.answers.length === 0 && b.answers.length > 0) return -1;
-        if (b.answers.length === 0 && a.answers.length > 0) return 1;
-        return getHours(a.createdAt) - getHours(b.createdAt);
-      case 'newest':
-      default:
-        // Sort by creation time
-        return getHours(a.createdAt) - getHours(b.createdAt);
-    }
+const QuestionForm = ({ onSubmit, onCancel, isSubmitting }: QuestionFormProps) => {
+  const [formState, setFormState] = useState<QuestionFormData>({
+    title: '',
+    description: '',
+    category: 'React',
+    tags: []
   });
+  const [tagInput, setTagInput] = useState('');
 
-  const handleVote = (postId: number, voteType: 'up' | 'down', isAnswer = false, answerId?: number) => {
-    if (!isAuthenticated) {
-      navigate('/signin');
-      return;
-    }
-
-    setPosts(prevPosts => 
-      prevPosts.map(post => {
-        if (!isAnswer && post.id === postId) {
-          const newVotes = post.isUserVoted === voteType 
-            ? post.votes - (voteType === 'up' ? 1 : -1)
-            : post.votes + (voteType === 'up' ? 1 : -1);
-          
-          return {
-            ...post,
-            votes: newVotes,
-            isUserVoted: post.isUserVoted === voteType ? null : voteType
-          };
-        } else if (isAnswer && post.id === postId && answerId) {
-          return {
-            ...post,
-            answers: post.answers.map(answer => {
-              if (answer.id === answerId) {
-                const newVotes = answer.isUserVoted === voteType 
-                  ? answer.votes - (voteType === 'up' ? 1 : -1)
-                  : answer.votes + (voteType === 'up' ? 1 : -1);
-                
-                return {
-                  ...answer,
-                  votes: newVotes,
-                  isUserVoted: answer.isUserVoted === voteType ? null : voteType
-                };
-              }
-              return answer;
-            })
-          };
-        }
-        return post;
-      })
-    );
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormState(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
-  const handleTagClick = (tag: string) => {
-    if (!selectedTags.includes(tag)) {
-      setSelectedTags(prev => [...prev, tag]);
-    }
+  const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setTagInput(value);
+    const tags = value.split(',').map(tag => tag.trim()).filter(Boolean);
+    setFormState(prev => ({
+      ...prev,
+      tags
+    }));
   };
 
-  const handleCategoryClick = (category: string) => {
-    setSelectedCategory(category.toLowerCase());
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await onSubmit(formState);
   };
 
-  const PostForm = () => (
+  return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-ninja-black/95 p-6 rounded-xl w-full max-w-2xl mx-4">
+      <div className="bg-ninja-black/95 p-6 rounded-xl w-full max-w-2xl mx-4" onClick={e => e.stopPropagation()}>
         <h2 className="font-monument text-2xl mb-6">Ask a Question</h2>
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          // Handle form submission
-          setShowPostForm(false);
-        }}>
+        <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm mb-2">Title</label>
+              <label htmlFor="title" className="block text-sm mb-2">Title</label>
               <input
+                id="title"
                 type="text"
-                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg"
+                name="title"
+                value={formState.title}
+                onChange={handleChange}
+                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-ninja-green/50"
                 placeholder="What's your question?"
+                required
+                minLength={5}
+                maxLength={200}
               />
             </div>
             <div>
-              <label className="block text-sm mb-2">Category</label>
-              <select className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg">
-                {categories.map(cat => (
-                  <option key={cat} value={cat.toLowerCase()}>{cat}</option>
+              <label htmlFor="category" className="block text-sm mb-2">Category</label>
+              <select
+                id="category"
+                name="category"
+                value={formState.category}
+                onChange={handleChange}
+                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-ninja-green/50"
+                required
+              >
+                {['React', 'Node.js', 'Python', 'JavaScript', 'DevOps', 'Career', 'Other'].map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm mb-2">Details</label>
+              <label htmlFor="description" className="block text-sm mb-2">Details</label>
               <textarea
-                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg h-32"
+                id="description"
+                name="description"
+                value={formState.description}
+                onChange={handleChange}
+                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-ninja-green/50 h-32 resize-none"
                 placeholder="Provide more details about your question..."
+                required
+                minLength={20}
               />
+            </div>
+            <div>
+              <label htmlFor="tags" className="block text-sm mb-2">Tags (optional)</label>
+              <input
+                id="tags"
+                type="text"
+                name="tags"
+                value={tagInput}
+                onChange={handleTagChange}
+                placeholder="Add tags separated by commas (e.g., react, hooks, state)"
+                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-ninja-green/50"
+              />
+              <p className="text-xs text-white/40 mt-1">Separate tags with commas</p>
             </div>
             <div className="flex justify-end gap-4">
               <button
                 type="button"
-                onClick={() => setShowPostForm(false)}
+                onClick={onCancel}
                 className="px-4 py-2 text-white/60 hover:text-white"
+                disabled={isSubmitting}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-ninja-green text-ninja-black rounded-lg hover:bg-ninja-green/90"
+                className="px-4 py-2 bg-ninja-green text-ninja-black rounded-lg hover:bg-ninja-green/90 disabled:opacity-50"
+                disabled={isSubmitting}
               >
-                Post Question
+                {isSubmitting ? 'Posting...' : 'Post Question'}
               </button>
             </div>
           </div>
@@ -303,16 +225,229 @@ const Community = () => {
       </div>
     </div>
   );
+};
 
-  const QuestionsList = () => (
-    <div className="space-y-6">
-      {filteredPosts.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-ninja-white/60 text-lg">No questions found matching your criteria</p>
-          <p className="text-ninja-white/40 mt-2">Try adjusting your search or filters</p>
+const Community = () => {
+  const navigate = useNavigate();
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showPostForm, setShowPostForm] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [timeFilter, setTimeFilter] = useState('all');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tagInput, setTagInput] = useState('');
+
+  // Form state
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: 'React',
+    tags: [] as string[]
+  });
+
+  // Add refs for input fields
+  const titleRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const tagRef = useRef<HTMLInputElement>(null);
+
+  const categories = ['All', 'React', 'Node.js', 'Python', 'JavaScript', 'DevOps', 'Career'];
+  const timeFilters = [
+    { value: 'all', label: 'All Time' },
+    { value: 'day', label: 'Today' },
+    { value: 'week', label: 'This Week' },
+    { value: 'month', label: 'This Month' }
+  ];
+
+  useEffect(() => {
+    // Check authentication status
+    const checkAuth = () => {
+      const token = localStorage.getItem('student_token') || localStorage.getItem('teacher_token');
+      setIsAuthenticated(!!token);
+    };
+    checkAuth();
+
+    // Fetch questions
+    const loadQuestions = async () => {
+      try {
+        setIsLoaded(false);
+        const questions = await questionService.getQuestions();
+        
+        // Ensure questions is an array before mapping
+        if (!Array.isArray(questions)) {
+          console.error('Questions data is not an array:', questions);
+          toast.error('Invalid data format received from server');
+          setPosts([]);
+          return;
+        }
+
+        const formattedQuestions = questions
+          .map((q: any) => {
+            try {
+              if (!q || typeof q !== 'object') {
+                console.error('Invalid question data:', q);
+                return null;
+              }
+
+              const formatted: Post = {
+                id: q._id || q.id || Math.random(), // Fallback for missing ID
+                title: q.title || 'Untitled Question',
+                content: q.description || q.content || '',
+                author: q.author?.fullName || q.author?.name || 'Anonymous',
+                avatar: (q.author?.fullName || q.author?.name || 'A').charAt(0),
+                category: q.category || 'Other',
+                votes: typeof q.votes === 'number' ? q.votes : 0,
+                answers: Array.isArray(q.answers) ? q.answers.map((a: any) => ({
+                  id: a._id || a.id || Math.random(),
+                  content: a.content || '',
+                  author: a.author?.fullName || a.author?.name || 'Anonymous',
+                  avatar: (a.author?.fullName || a.author?.name || 'A').charAt(0),
+                  votes: typeof a.votes === 'number' ? a.votes : 0,
+                  createdAt: a.createdAt ? new Date(a.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
+                  isUserVoted: null,
+                  isAccepted: !!a.isAccepted
+                })) : [],
+                createdAt: q.createdAt ? new Date(q.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
+                isUserVoted: null,
+                tags: Array.isArray(q.tags) ? q.tags : [],
+                views: typeof q.views === 'number' ? q.views : 0,
+                isSaved: false
+              };
+              return formatted;
+            } catch (err) {
+              console.error('Error formatting question:', err);
+              return null;
+            }
+          })
+          .filter((q): q is Post => q !== null);
+
+        setPosts(formattedQuestions);
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+        toast.error(error instanceof Error ? error.message : 'Failed to fetch questions');
+        setPosts([]); // Reset posts on error
+      } finally {
+        setIsLoaded(true);
+      }
+    };
+
+    loadQuestions();
+  }, [sortBy, selectedCategory, timeFilter]);
+
+  const handleVote = async (postId: number, voteType: 'up' | 'down', isAnswer = false, answerId?: number) => {
+    if (!isAuthenticated) {
+      navigate('/signin/student');
+      return;
+    }
+
+    try {
+      await questionService.voteQuestion(postId.toString(), voteType);
+      setSortBy(current => current);
+    } catch (error) {
+      toast.error('Failed to vote');
+      console.error('Error voting:', error);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    if (name === 'tags') {
+      setTagInput(value);
+      const tags = value
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0);
+      setFormData(currentData => ({
+        ...currentData,
+        tags
+      }));
+    } else {
+      setFormData(currentData => ({
+        ...currentData,
+        [name]: value
+      }));
+    }
+  };
+
+  const handleFormSubmit = async (formData: QuestionFormData) => {
+    if (!isAuthenticated) {
+      navigate('/signin/student');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await questionService.createQuestion(formData);
+      toast.success('Question posted successfully!');
+      setShowPostForm(false);
+      setSortBy(current => current);
+    } catch (error) {
+      toast.error('Failed to post question');
+      console.error('Error posting question:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleFormCancel = () => {
+    setShowPostForm(false);
+  };
+
+  const topMembers = [
+    { name: 'Alex Chen', avatar: 'A', role: 'Full Stack Ninja', contributions: 156 },
+    { name: 'Lisa Wang', avatar: 'L', role: 'Frontend Master', contributions: 142 },
+    { name: 'David Kim', avatar: 'D', role: 'DevOps Expert', contributions: 128 }
+  ];
+
+  const upcomingEvents = [
+    {
+      id: 1,
+      title: 'React Advanced Workshop',
+      date: 'Mar 15, 2024',
+      time: '10:00 AM PST',
+      attendees: 128,
+      speaker: 'Sarah Johnson',
+      category: 'Workshop'
+    },
+    {
+      id: 2,
+      title: 'Tech Career AMA Session',
+      date: 'Mar 18, 2024',
+      time: '2:00 PM PST',
+      attendees: 256,
+      speaker: 'Mike Wilson',
+      category: 'AMA'
+    }
+  ];
+
+  const QuestionsList = () => {
+    if (!isLoaded) {
+      return (
+        <div className="space-y-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="backdrop-blur-xl bg-white/5 rounded-xl p-6 animate-pulse">
+              <div className="h-4 bg-white/10 rounded w-3/4 mb-4"></div>
+              <div className="h-4 bg-white/10 rounded w-1/2"></div>
+            </div>
+          ))}
         </div>
-      ) : (
-        filteredPosts.map((post) => (
+      );
+    }
+
+    if (posts.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <p className="text-ninja-white/60">No questions found</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        {posts.map((post) => (
           <div
             key={post.id}
             className="backdrop-blur-xl bg-white/5 rounded-xl p-6 transition-all duration-500 hover:bg-white/10"
@@ -351,35 +486,13 @@ const Community = () => {
                 <h3 className="font-monument text-lg mb-2">{post.title}</h3>
                 <p className="text-ninja-white/80 mb-4">{post.content}</p>
                 
-                <div className="flex flex-wrap items-center gap-2 mb-4">
-                  <button
-                    onClick={() => handleCategoryClick(post.category)}
-                    className="px-3 py-1 bg-white/5 rounded-full text-xs text-ninja-green hover:bg-white/10 transition-colors"
-                  >
+                <div className="flex items-center gap-4">
+                  <span className="px-3 py-1 bg-white/5 rounded-full text-xs text-ninja-green">
                     {post.category}
-                  </button>
-                  {post.tags.map(tag => (
-                    <button
-                      key={tag}
-                      onClick={() => handleTagClick(tag)}
-                      className={`px-3 py-1 rounded-full text-xs transition-colors ${
-                        selectedTags.includes(tag)
-                          ? 'bg-ninja-green text-ninja-black'
-                          : 'bg-white/5 text-white/60 hover:bg-white/10'
-                      }`}
-                    >
-                      #{tag}
-                    </button>
-                  ))}
-                  <div className="flex items-center gap-2 ml-auto">
-                    <span className="text-sm text-ninja-white/60">
-                      {post.answers.length} answers
-                    </span>
-                    <span className="text-ninja-white/40">•</span>
-                    <span className="text-sm text-ninja-white/60">
-                      {post.views} views
-                    </span>
-                  </div>
+                  </span>
+                  <span className="text-sm text-ninja-white/60">
+                    {post.answers.length} answers
+                  </span>
                 </div>
 
                 {/* Answers */}
@@ -415,9 +528,6 @@ const Community = () => {
                             <span className="text-sm text-ninja-white/80">{answer.author}</span>
                             <span className="text-ninja-white/40">•</span>
                             <span className="text-sm text-ninja-white/60">{answer.createdAt}</span>
-                            {answer.isAccepted && (
-                              <span className="text-ninja-green text-sm">✓ Accepted</span>
-                            )}
                           </div>
                           <p className="text-ninja-white/80">{answer.content}</p>
                         </div>
@@ -428,10 +538,10 @@ const Community = () => {
               </div>
             </div>
           </div>
-        ))
-      )}
-    </div>
-  );
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-ninja-black via-ninja-black/95 to-ninja-black text-ninja-white">
@@ -462,84 +572,73 @@ const Community = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search questions by title, content, tags, or category..."
+              placeholder="Search questions..."
               className="w-full px-4 py-2 pl-10 bg-white/5 border border-white/10 rounded-lg focus:border-ninja-green/50 transition-colors"
             />
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40">
               🔍
             </span>
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
-              >
-                ×
-              </button>
-            )}
           </div>
 
-          {/* Sort Options */}
+          <div className="flex flex-wrap gap-4">
+            <CustomDropdown
+              options={[
+                { value: 'newest', label: 'Newest' },
+                { value: 'popular', label: 'Most Popular' },
+                { value: 'unanswered', label: 'Unanswered' }
+              ]}
+              value={sortBy}
+              onChange={setSortBy}
+              className="w-40"
+            />
+
+            <CustomDropdown
+              options={categories.map(cat => ({
+                value: cat.toLowerCase(),
+                label: cat
+              }))}
+              value={selectedCategory}
+              onChange={setSelectedCategory}
+              className="w-40"
+            />
+
+            <CustomDropdown
+              options={timeFilters}
+              value={timeFilter}
+              onChange={setTimeFilter}
+              className="w-40"
+            />
+          </div>
           <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setSortBy('newest')}
-              className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                sortBy === 'newest'
-                  ? 'bg-ninja-green text-ninja-black'
-                  : 'bg-white/5 text-white/60 hover:bg-white/10'
-              }`}
-            >
-              Newest
-            </button>
-            <button
-              onClick={() => setSortBy('popular')}
-              className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                sortBy === 'popular'
-                  ? 'bg-ninja-green text-ninja-black'
-                  : 'bg-white/5 text-white/60 hover:bg-white/10'
-              }`}
-            >
-              Most Popular
-            </button>
-            <button
-              onClick={() => setSortBy('unanswered')}
-              className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                sortBy === 'unanswered'
-                  ? 'bg-ninja-green text-ninja-black'
-                  : 'bg-white/5 text-white/60 hover:bg-white/10'
-              }`}
-            >
-              Unanswered ({posts.filter(p => p.answers.length === 0).length})
-            </button>
-          </div>
-
-          {/* Active Tags */}
-          {selectedTags.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-white/60">Active filters:</span>
-              {selectedTags.map(tag => (
-                <button
-                  key={tag}
-                  onClick={() => setSelectedTags(prev => prev.filter(t => t !== tag))}
-                  className="px-3 py-1 rounded-full text-xs bg-ninja-green text-ninja-black hover:bg-ninja-green/90 transition-colors"
-                >
-                  #{tag} ×
-                </button>
-              ))}
+            {selectedTags.map((tag) => (
               <button
-                onClick={() => setSelectedTags([])}
-                className="text-sm text-white/60 hover:text-white ml-2"
+                key={tag}
+                onClick={() => setSelectedTags(prev =>
+                  prev.filter(t => t !== tag)
+                )}
+                className={`px-3 py-1 rounded-full text-xs transition-colors ${
+                  selectedTags.includes(tag)
+                    ? 'bg-ninja-green text-ninja-black'
+                    : 'bg-white/5 text-white/60 hover:bg-white/10'
+                }`}
               >
-                Clear all
+                {tag}
               </button>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
 
         {/* Content */}
         <QuestionsList />
 
         {/* Post Form Modal */}
-        {showPostForm && <PostForm />}
+        {showPostForm && (
+          <QuestionForm
+            onSubmit={handleFormSubmit}
+            onCancel={handleFormCancel}
+            isSubmitting={isSubmitting}
+          />
+        )}
       </main>
     </div>
   );
