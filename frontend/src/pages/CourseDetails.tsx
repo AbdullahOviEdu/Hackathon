@@ -3,21 +3,10 @@ import { useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { FiClock, FiUsers, FiStar, FiBook, FiAward } from 'react-icons/fi';
 
-interface Module {
-  id: number;
-  title: string;
-  duration: string;
-  lessons: {
-    id: number;
-    title: string;
-    duration: string;
-    isCompleted: boolean;
-  }[];
-}
 
 const CourseDetails: React.FC = () => {
   const { id } = useParams();
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded] = useState(false);
   const [activeModule, setActiveModule] = useState<number | null>(null);
 
   // Dummy course data
