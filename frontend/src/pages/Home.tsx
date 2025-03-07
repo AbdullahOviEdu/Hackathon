@@ -3,9 +3,6 @@ import { Link } from 'react-router-dom';
 import womenPower from '../assets/Women Power - Mobile.png';
 import Navbar from '../components/Navbar';
 import ChatBot from '../components/ChatBot';
-// Import icons
-import { FaUserNinja, FaBookOpen, FaChartLine, FaHeadset } from 'react-icons/fa';
-import { IoRocketSharp, IoFlashSharp, IoStar } from 'react-icons/io5';
 
 const ROTATE_WORDS = ['CODE', 'CREATE', 'LEARN', 'GROW'];
 const TECH_STACK = ['React', 'Node.js', 'Python', 'TypeScript', 'MongoDB', 'AWS', 'Docker', 'GraphQL'];
@@ -81,15 +78,9 @@ const Home = () => {
                 </Link>
                 <Link 
                   to="/course/1"
-                  className="px-7 py-3 bg-transparent text-ninja-white font-monument text-sm rounded-lg border border-white/20 hover:border-ninja-green/50 hover:bg-ninja-green/5 transition-all duration-300"
+                  className="px-6 py-3 bg-transparent text-ninja-white font-monument text-sm rounded-md border border-ninja-white/20 hover:border-ninja-white/40 transition-colors"
                 >
                   Explore Courses
-                </Link>
-                <Link 
-                  to="/signin/teacher"
-                  className="px-7 py-3 bg-transparent text-ninja-white font-monument text-sm rounded-lg border border-white/20 hover:border-ninja-purple/50 hover:bg-ninja-purple/5 transition-all duration-300"
-                >
-                  Teacher Login
                 </Link>
               </div>
 
@@ -121,97 +112,104 @@ const Home = () => {
         </div>
 
         {/* Stats Section */}
-        <div className="max-w-6xl mx-auto px-4 md:px-8 mt-16 md:mt-24">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16 mt-20 relative">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-ninja-green/5 to-transparent" />
+          <div className="relative grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { number: '10K+', label: 'ACTIVE NINJAS', icon: <FaUserNinja /> },
-              { number: '200+', label: 'COURSES', icon: <FaBookOpen /> },
-              { number: '98%', label: 'SUCCESS RATE', icon: <FaChartLine /> },
-              { number: '24/7', label: 'SUPPORT', icon: <FaHeadset /> }
+              { number: '10K+', label: 'ACTIVE NINJAS', icon: '🥷' },
+              { number: '200+', label: 'EPIC COURSES', icon: '🎯' },
+              { number: '98%', label: 'SUCCESS RATE', icon: '📈' },
+              { number: '24/7', label: 'SUPPORT', icon: '💪' }
             ].map((stat, index) => (
               <div
                 key={index}
-                className={`bg-ninja-black border border-white/5 rounded-md p-5 text-center transition-opacity duration-300 ${
-                  isLoaded ? 'opacity-100' : 'opacity-0'
+                className={`backdrop-blur-xl bg-white/5 rounded-xl p-6 text-center transition-all duration-500 hover:bg-white/10 transform hover:scale-105 ${
+                  isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
                 }`}
                 style={{ transitionDelay: `${index * 100}ms` }}
               >
-                <div className="text-ninja-green mb-3 flex justify-center">
-                  <span className="text-xl">{stat.icon}</span>
-                </div>
-                <div className="font-monument text-2xl md:text-3xl text-white mb-1">{stat.number}</div>
-                <div className="text-xs text-white/50">{stat.label}</div>
+                <div className="text-4xl mb-3 animate-bounce">{stat.icon}</div>
+                <div className="font-monument text-3xl md:text-4xl text-ninja-green mb-2">{stat.number}</div>
+                <div className="text-sm text-ninja-white/60">{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Features Section */}
-        <div className="max-w-6xl mx-auto px-4 md:px-8 mt-16 md:mt-24 mb-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16 mt-20 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               { 
                 title: 'LEARN',
                 description: 'Master cutting-edge tech skills',
                 features: ['Interactive Courses', 'Real Projects', 'Expert Guidance'],
-                icon: <IoRocketSharp />,
-                color: 'text-ninja-green'
+                icon: '🚀',
+                color: 'from-ninja-green/20'
               },
               { 
                 title: 'BUILD',
                 description: 'Create amazing projects',
                 features: ['Hands-on Labs', 'Code Reviews', 'Portfolio Building'],
-                icon: <IoFlashSharp />,
-                color: 'text-ninja-purple'
+                icon: '⚡',
+                color: 'from-ninja-purple/20'
               },
               { 
                 title: 'GROW',
                 description: 'Accelerate your tech career',
                 features: ['Career Support', 'Industry Network', 'Job Placement'],
-                icon: <IoStar />,
-                color: 'text-ninja-orange'
+                icon: '🌟',
+                color: 'from-ninja-orange/20'
               }
             ].map((category, index) => (
               <div
                 key={index}
-                className={`bg-ninja-black border border-white/5 rounded-md p-6 transition-opacity duration-300 ${
-                  isLoaded ? 'opacity-100' : 'opacity-0'
+                className={`group relative p-6 backdrop-blur-xl bg-white/5 rounded-xl transition-all duration-500 hover:bg-white/10 overflow-hidden ${
+                  isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                 }`}
-                style={{ transitionDelay: `${index * 150}ms` }}
+                style={{ transitionDelay: `${index * 200}ms` }}
               >
-                <div className={`${category.color} mb-4 text-xl`}>{category.icon}</div>
-                <h3 className="font-monument text-lg mb-2 text-white">
-                  {category.title}
-                </h3>
-                <p className="text-sm text-white/60 mb-4">{category.description}</p>
-                <ul className="space-y-2">
-                  {category.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-center gap-2">
-                      <div className="w-1 h-1 rounded-full bg-ninja-green" />
-                      <span className="text-xs text-white/70">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className={`absolute inset-0 bg-gradient-to-b ${category.color} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                <div className="relative">
+                  <div className="text-4xl mb-4">{category.icon}</div>
+                  <h3 className="font-monument text-xl mb-2 text-ninja-green group-hover:text-ninja-white transition-colors">
+                    {category.title}
+                  </h3>
+                  <p className="text-sm text-ninja-white/60 mb-4">{category.description}</p>
+                  <ul className="space-y-2.5">
+                    {category.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-ninja-green" />
+                        <span className="text-sm text-ninja-white/80">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
         {/* CTA Section */}
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-12 md:py-16">
-          <div className="bg-ninja-black border border-white/5 rounded-md p-8 text-center">
-            <h2 className="font-monument text-2xl md:text-3xl mb-4">
-              Ready to Begin Your <span className="text-ninja-green">Journey</span>?
-            </h2>
-            <p className="text-sm text-white/60 mb-6 max-w-lg mx-auto">
-              Join thousands of aspiring developers who have transformed their careers through our platform.
-            </p>
-            <Link 
-              to="/signup"
-              className="inline-block px-6 py-3 bg-ninja-green text-ninja-black font-monument text-sm rounded-md hover:bg-ninja-green/90 transition-colors"
-            >
-              Get Started Now
-            </Link>
+        <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16 py-16">
+          <div className="relative backdrop-blur-xl bg-white/5 rounded-2xl p-8 md:p-12 border border-white/10 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-ninja-green/10 via-ninja-purple/10 to-ninja-orange/10 animate-gradient" />
+            <div className="relative z-10">
+              <h2 className="font-monument text-3xl md:text-4xl text-center mb-4">
+                Ready to Begin Your <span className="text-ninja-green">Journey</span>?
+              </h2>
+              <p className="text-ninja-white/60 text-center mb-8 max-w-2xl mx-auto">
+                Join thousands of aspiring developers who have transformed their careers through our platform. Start your coding adventure today!
+              </p>
+              <div className="flex justify-center gap-4">
+                <Link 
+                  to="/signup"
+                  className="px-8 py-4 bg-ninja-green text-ninja-black font-monument text-sm rounded-lg hover:scale-105 transition-all duration-300 shadow-lg shadow-ninja-green/20"
+                >
+                  Get Started Now
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>

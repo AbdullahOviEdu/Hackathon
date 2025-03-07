@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import handsPhone1 from '../assets/Hands - Phone (1).png';
 import handsPhone2 from '../assets/Hands - Phone (2).png';
 import handsPhone3 from '../assets/Hands - Phone (3).png';
 import handsPhone4 from '../assets/Hands - Phone (4).png';
+import { isAuthenticated, logout } from '../services/authService';
 
 interface NavLinkProps {
   href: string;
@@ -74,6 +75,9 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const [userAuthenticated, setUserAuthenticated] = useState(false);
+  const [userType, setUserType] = useState<string | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -81,16 +85,39 @@ const Navbar = () => {
     };
 
     window.addEventListener('scroll', handleScroll);
+    
+    // Check authentication status
+    const checkAuth = () => {
+      const authenticated = isAuthenticated();
+      setUserAuthenticated(authenticated);
+      setUserType(localStorage.getItem('user_type'));
+    };
+    
+    checkAuth();
+    
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [location.pathname]);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   const navLinks = [
     { href: '/', icon: handsPhone1, label: 'Home' },
     { href: '/courses', icon: handsPhone2, label: 'Courses' },
     { href: '/community', icon: handsPhone3, label: 'Community' },
     { href: '/resources', icon: handsPhone1, label: 'Resources' },
-    { href: '/student-dashboard', icon: handsPhone4, label: 'Student Dashboard' }
   ];
+
+  // Add dashboard link based on user type
+  if (userAuthenticated) {
+    if (userType === 'teacher') {
+      navLinks.push({ href: '/teacher/dashboard', icon: handsPhone4, label: 'Dashboard' });
+    } else if (userType === 'student') {
+      navLinks.push({ href: '/student-dashboard', icon: handsPhone4, label: 'Dashboard' });
+    }
+  }
 
   const signInOptions = [
     { label: 'Sign in as Student', href: '/signin/student' },
@@ -101,9 +128,6 @@ const Navbar = () => {
     { label: 'Sign up as Student', href: '/signup/student' },
     { label: 'Sign up as Teacher', href: '/signup/teacher' }
   ];
-
-  // Set to false to show auth buttons
-  const isAuthenticated = false;
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -127,11 +151,19 @@ const Navbar = () => {
 
           {/* Right side with auth buttons */}
           <div className="flex-1 flex justify-end gap-2">
-            {isAuthenticated ? (
-              <button className="hidden md:flex items-center gap-2 px-4 py-2 text-ninja-white/60 hover:text-ninja-white transition-colors">
-                <span>🔔</span>
-                <span className="w-2 h-2 bg-ninja-green rounded-full" />
-              </button>
+            {userAuthenticated ? (
+              <div className="flex items-center gap-4">
+                <button className="hidden md:flex items-center gap-2 px-4 py-2 text-ninja-white/60 hover:text-ninja-white transition-colors">
+                  <span>🔔</span>
+                  <span className="w-2 h-2 bg-ninja-green rounded-full" />
+                </button>
+                <button 
+                  onClick={handleLogout}
+                  className="hidden md:block px-6 py-2.5 text-ninja-white/80 font-monument text-sm hover:text-ninja-white transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
             ) : (
               <>
                 <DropdownButton 
@@ -191,7 +223,20 @@ const Navbar = () => {
                   </div>
                 ))}
               </div>
-              {!isAuthenticated && (
+              {userAuthenticated ? (
+                <div className="mt-6">
+                  <div className={`transition-all duration-300 transform ${
+                    isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+                  }`} style={{ transitionDelay: `${navLinks.length * 50 + 50}ms` }}>
+                    <button 
+                      onClick={handleLogout}
+                      className="w-full py-3 px-4 bg-ninja-black/30 text-ninja-white/80 font-monument text-sm rounded-lg border border-ninja-white/10 hover:bg-ninja-white/5"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              ) : (
                 <div className="mt-6">
                   {/* Sign In Section */}
                   <div className={`mb-6 transition-all duration-300 transform ${

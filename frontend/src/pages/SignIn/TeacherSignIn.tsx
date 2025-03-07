@@ -1,24 +1,40 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import teacherIllustration from '../../assets/Happy Bunch - Chat.png';
+import { loginTeacher } from '../../services/authService';
 
 const TeacherSignIn = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Teacher login:', formData);
-    // Mock successful login
-    localStorage.setItem('teacher_token', 'mock_token');
-    localStorage.setItem('user_type', 'teacher');
-    // Navigate to teacher dashboard
-    navigate('/teacher/dashboard');
+    
+    try {
+      setIsLoading(true);
+      
+      // Call the API to login the teacher
+      await loginTeacher(formData.email, formData.password);
+      
+      // Show success toast
+      toast.success('Login successful!');
+      
+      // Redirect to teacher dashboard
+      setTimeout(() => {
+        navigate('/teacher/dashboard');
+      }, 1000); // Short delay to allow the toast to be seen
+      
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Login failed');
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,6 +47,7 @@ const TeacherSignIn = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-ninja-black p-4">
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="w-full max-w-6xl flex rounded-2xl overflow-hidden bg-ninja-black/50 backdrop-blur-xl border border-ninja-white/10">
         {/* Left Side - Illustration */}
         <div className="hidden md:block w-1/2 p-12 bg-gradient-to-br from-ninja-purple/10 to-ninja-green/10">
@@ -101,9 +118,10 @@ const TeacherSignIn = () => {
 
             <button
               type="submit"
-              className="w-full py-3 px-4 bg-gradient-to-r from-ninja-purple to-ninja-green text-ninja-black font-monument rounded-lg hover:from-ninja-green hover:to-ninja-purple transition-all duration-500"
+              disabled={isLoading}
+              className="w-full py-3 px-4 bg-gradient-to-r from-ninja-purple to-ninja-green text-ninja-black font-monument rounded-lg hover:from-ninja-green hover:to-ninja-purple transition-all duration-500 disabled:opacity-70"
             >
-              Sign In
+              {isLoading ? 'Signing In...' : 'Sign In'}
             </button>
 
             <div className="text-center text-ninja-white/60">

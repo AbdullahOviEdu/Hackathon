@@ -1,8 +1,13 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import teacherIllustration from '../../assets/Happy Bunch - Chat.png';
+import { registerTeacher } from '../../services/authService';
 
 const TeacherSignUp = () => {
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -13,10 +18,45 @@ const TeacherSignUp = () => {
     agreeToTerms: false
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle signup logic here
-    console.log('Teacher signup:', formData);
+    
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    
+    // Validate terms agreement
+    if (!formData.agreeToTerms) {
+      toast.error('Please agree to the Terms of Service and Privacy Policy');
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      
+      // Call the API to register the teacher
+      await registerTeacher({
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        institution: formData.institution,
+        subject: formData.subject
+      });
+      
+      // Show success toast
+      toast.success('Account created successfully!');
+      
+      // Redirect to teacher dashboard
+      setTimeout(() => {
+        navigate('/teacher/dashboard');
+      }, 1500); // Short delay to allow the toast to be seen
+      
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Registration failed');
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,6 +69,7 @@ const TeacherSignUp = () => {
 
   return (
     <div className="h-screen flex items-center justify-center bg-ninja-black p-4 overflow-hidden">
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="w-full max-w-4xl flex rounded-2xl overflow-hidden bg-ninja-black/50 backdrop-blur-xl border border-ninja-white/10">
         {/* Left Side - Illustration */}
         <div className="hidden md:block w-2/5 p-6 bg-gradient-to-br from-ninja-purple/10 to-ninja-green/10">
@@ -174,9 +215,10 @@ const TeacherSignUp = () => {
 
             <button
               type="submit"
-              className="w-full py-2 px-4 bg-gradient-to-r from-ninja-purple to-ninja-green text-ninja-black font-monument text-sm rounded-lg hover:from-ninja-green hover:to-ninja-purple transition-all duration-500"
+              disabled={isLoading}
+              className="w-full py-2 px-4 bg-gradient-to-r from-ninja-purple to-ninja-green text-ninja-black font-monument text-sm rounded-lg hover:from-ninja-green hover:to-ninja-purple transition-all duration-500 disabled:opacity-70"
             >
-              Create Account
+              {isLoading ? 'Creating Account...' : 'Create Account'}
             </button>
 
             <div className="text-center text-xs text-ninja-white/60">
