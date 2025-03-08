@@ -22,7 +22,11 @@ import TeacherVoiceAssistant from './pages/dashboard/TeacherVoiceAssistant';
 import StudentDashboardLayout from './layouts/StudentDashboardLayout';
 import StudentCourses from './pages/StudentCourses';
 import Trivia from './pages/Trivia';
+<<<<<<< Updated upstream
 import CoinMenu from './pages/CoinMenu';
+=======
+import RealTimeProjects from './pages/RealTimeProjects';
+>>>>>>> Stashed changes
 
 const App = () => {
   useEffect(() => {
@@ -52,7 +56,11 @@ const App = () => {
           <Route path="settings" element={<Settings />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="trivia" element={<Trivia />} />
+<<<<<<< Updated upstream
           <Route path="coin-menu" element={<CoinMenu />} />
+=======
+          <Route path="projects" element={<RealTimeProjects />} />
+>>>>>>> Stashed changes
         </Route>
 
         {/* Teacher Routes */}

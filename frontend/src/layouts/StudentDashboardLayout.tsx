@@ -1,6 +1,10 @@
 import React from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
+<<<<<<< Updated upstream
 import { FiGrid, FiBook, FiCalendar, FiSettings, FiLogOut, FiHelpCircle, FiDollarSign, FiMessageSquare, FiMic } from 'react-icons/fi';
+=======
+import { FiGrid, FiBook, FiCalendar, FiSettings, FiLogOut, FiHelpCircle, FiCode } from 'react-icons/fi';
+>>>>>>> Stashed changes
 import Navbar from '../components/Navbar';
 
 const StudentDashboardLayout: React.FC = () => {
@@ -26,10 +30,19 @@ const StudentDashboardLayout: React.FC = () => {
       label: 'My Courses',
       path: '/student-dashboard/courses'
     },
+<<<<<<< Updated upstream
+=======
+    {
+      icon: FiCode,
+      label: 'Real-time Projects',
+      path: '/student-dashboard/projects'
+    },
+>>>>>>> Stashed changes
     {
       icon: FiHelpCircle,
       label: 'Trivia',
       path: '/student-dashboard/trivia'
+<<<<<<< Updated upstream
     },
     {
       icon: FiDollarSign,
@@ -50,6 +63,8 @@ const StudentDashboardLayout: React.FC = () => {
       icon: FiSettings,
       label: 'Settings',
       path: '/student-dashboard/settings'
+=======
+>>>>>>> Stashed changes
     }
   ];
 
