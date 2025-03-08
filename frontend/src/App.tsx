@@ -22,11 +22,10 @@ import TeacherVoiceAssistant from './pages/dashboard/TeacherVoiceAssistant';
 import StudentDashboardLayout from './layouts/StudentDashboardLayout';
 import StudentCourses from './pages/StudentCourses';
 import Trivia from './pages/Trivia';
-<<<<<<< Updated upstream
-import CoinMenu from './pages/CoinMenu';
-=======
 import RealTimeProjects from './pages/RealTimeProjects';
->>>>>>> Stashed changes
+import CoinMenu from './pages/CoinMenu';
+import StudentLearningBot from './pages/student/StudentLearningBot';
+import StudentVoiceAssistant from './pages/student/StudentVoiceAssistant';
 
 const App = () => {
   useEffect(() => {
@@ -51,16 +50,15 @@ const App = () => {
         {/* Student Dashboard Routes */}
         <Route path="/student-dashboard" element={<StudentDashboardLayout />}>
           <Route index element={<StudentDashboard />} />
-          <Route path="courses" element={<StudentCourses />} />
+          <Route path="courses" element={<Courses />} />
           <Route path="meetings" element={<Meetings />} />
           <Route path="settings" element={<Settings />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="trivia" element={<Trivia />} />
-<<<<<<< Updated upstream
-          <Route path="coin-menu" element={<CoinMenu />} />
-=======
           <Route path="projects" element={<RealTimeProjects />} />
->>>>>>> Stashed changes
+          <Route path="coin-shop" element={<CoinMenu />} />
+          <Route path="learning-bot" element={<StudentLearningBot />} />
+          <Route path="voice-assistant" element={<StudentVoiceAssistant />} />
         </Route>
 
         {/* Teacher Routes */}

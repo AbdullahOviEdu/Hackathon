@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform, useSpring, useAnimation } from 'framer-motion';
 import { FiArrowRight, FiCode, FiBook, FiAward, FiUsers, FiClock, FiStar, FiMousePointer } from 'react-icons/fi';
+import { FaGraduationCap, FaCoins, FaCode } from 'react-icons/fa';
 import womenPower from '../assets/Women Power - Mobile.png';
 import Navbar from '../components/Navbar';
 import ChatBot from '../components/ChatBot';
@@ -42,6 +43,7 @@ const Home = () => {
   
   const { scrollYProgress } = useScroll();
   const controls = useAnimation();
+  const navigate = useNavigate();
 
   // Smooth scroll progress
   const scaleX = useSpring(scrollYProgress, {
@@ -332,6 +334,166 @@ const Home = () => {
             </motion.div>
           </div>
         </motion.div>
+
+        {/* After the existing hero section, add this new section */}
+        <section className="py-24 bg-ninja-black">
+          <div className="max-w-5xl mx-auto px-6">
+            {/* Minimalist Header */}
+            <div className="text-center mb-20">
+              <h2 className="text-5xl font-monument text-white mb-6 tracking-wider">
+                Begin Your Journey
+              </h2>
+              <p className="text-lg text-white/60 max-w-lg mx-auto leading-relaxed">
+                Join our learning community and unlock your potential ✨
+              </p>
+            </div>
+
+            {/* Simplified Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Premium Courses Card */}
+              <motion.div
+                whileHover={{ y: -5, scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                className="relative p-6 rounded-2xl bg-gradient-to-b from-ninja-black to-ninja-black/80 border border-white/5 hover:border-ninja-green/30 group"
+              >
+                <div className="mb-6 p-4 bg-ninja-green/5 rounded-xl w-14 h-14 flex items-center justify-center">
+                  <FaGraduationCap className="w-7 h-7 text-ninja-green" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-3">
+                  Premium Courses
+                </h3>
+                <p className="text-sm text-white/50 mb-6 leading-relaxed">
+                  Learn from industry experts 🎓
+                </p>
+                <motion.button
+                  whileHover={{ x: 5 }}
+                  onClick={() => navigate('/signin/student')}
+                  className="flex items-center text-ninja-green text-sm font-medium group-hover:text-ninja-green/80"
+                >
+                  Get Started 
+                  <FiArrowRight className="ml-2 w-4 h-4" />
+                </motion.button>
+              </motion.div>
+
+              {/* Earn Coins Card */}
+              <motion.div
+                whileHover={{ y: -5, scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                className="relative p-6 rounded-2xl bg-gradient-to-b from-ninja-black to-ninja-black/80 border border-white/5 hover:border-yellow-500/30 group"
+              >
+                <div className="mb-6 p-4 bg-yellow-500/5 rounded-xl w-14 h-14 flex items-center justify-center">
+                  <FaCoins className="w-7 h-7 text-yellow-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-3">
+                  Earn Coins
+                </h3>
+                <p className="text-sm text-white/50 mb-6 leading-relaxed">
+                  Complete challenges, get rewards ⭐
+                </p>
+                <motion.button
+                  whileHover={{ x: 5 }}
+                  onClick={() => navigate('/signin/student')}
+                  className="flex items-center text-yellow-400 text-sm font-medium group-hover:text-yellow-400/80"
+                >
+                  Start Earning 
+                  <FiArrowRight className="ml-2 w-4 h-4" />
+                </motion.button>
+              </motion.div>
+
+              {/* Real Projects Card */}
+              <motion.div
+                whileHover={{ y: -5, scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                className="relative p-6 rounded-2xl bg-gradient-to-b from-ninja-black to-ninja-black/80 border border-white/5 hover:border-purple-500/30 group"
+              >
+                <div className="mb-6 p-4 bg-purple-500/5 rounded-xl w-14 h-14 flex items-center justify-center">
+                  <FaCode className="w-7 h-7 text-purple-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-3">
+                  Real Projects
+                </h3>
+                <p className="text-sm text-white/50 mb-6 leading-relaxed">
+                  Build your dream portfolio ✨
+                </p>
+                <motion.button
+                  whileHover={{ x: 5 }}
+                  onClick={() => navigate('/signin/student')}
+                  className="flex items-center text-purple-400 text-sm font-medium group-hover:text-purple-400/80"
+                >
+                  Start Building 
+                  <FiArrowRight className="ml-2 w-4 h-4" />
+                </motion.button>
+              </motion.div>
+            </div>
+
+            {/* Enhanced Call to Action Button */}
+            <div className="mt-20 text-center">
+              <motion.button
+                whileHover={{ 
+                  scale: 1.03,
+                  boxShadow: "0 0 30px rgba(139, 92, 246, 0.3)" 
+                }}
+                whileTap={{ scale: 0.97 }}
+                initial={{ boxShadow: "0 0 0px rgba(139, 92, 246, 0)" }}
+                transition={{ 
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 10
+                }}
+                onClick={() => navigate('/signup/student')}
+                className="group relative overflow-hidden bg-gradient-to-r from-ninja-purple to-ninja-green px-12 py-4 rounded-full font-medium text-lg transition-all duration-500"
+              >
+                {/* Animated background effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-ninja-green to-ninja-purple opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                {/* Glow effect */}
+                <div className="absolute inset-0 rounded-full blur-xl bg-gradient-to-r from-ninja-purple/30 to-ninja-green/30 group-hover:blur-2xl transition-all duration-500" />
+                
+                {/* Button content */}
+                <div className="relative flex items-center justify-center gap-2">
+                  <span className="text-white group-hover:tracking-wider transition-all duration-300">
+                    Join Now - It's Free!
+                  </span>
+                  <motion.span
+                    initial={{ y: 0 }}
+                    animate={{ y: [0, -2, 0] }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }}
+                    className="text-xl"
+                  >
+                    ✨
+                  </motion.span>
+                </div>
+              </motion.button>
+
+              {/* Enhanced Sign In Link */}
+              <motion.p 
+                initial={{ opacity: 0.7 }}
+                whileHover={{ opacity: 1 }}
+                className="mt-6 text-white/40 text-sm"
+              >
+                Already have an account?{' '}
+                <motion.button
+                  whileHover={{ x: 5 }}
+                  onClick={() => navigate('/signin/student')}
+                  className="text-ninja-green hover:text-ninja-purple transition-all duration-300 font-medium inline-flex items-center gap-1"
+                >
+                  Sign in
+                  <motion.span
+                    initial={{ x: 0 }}
+                    whileHover={{ x: 3 }}
+                    transition={{ type: "spring", stiffness: 400 }}
+                  >
+                    →
+                  </motion.span>
+                </motion.button>
+              </motion.p>
+            </div>
+          </div>
+        </section>
 
         {/* Enhanced Stats Section */}
         <motion.div 

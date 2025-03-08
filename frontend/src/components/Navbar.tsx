@@ -126,7 +126,7 @@ const Navbar = () => {
 
   const handleCoinClick = () => {
     if (userType === 'student') {
-      navigate('/student-dashboard/coin-menu');
+      navigate('/student-dashboard/coin-shop');
     }
   };
 

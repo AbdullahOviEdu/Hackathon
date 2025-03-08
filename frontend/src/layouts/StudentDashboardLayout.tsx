@@ -1,10 +1,6 @@
 import React from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
-<<<<<<< Updated upstream
-import { FiGrid, FiBook, FiCalendar, FiSettings, FiLogOut, FiHelpCircle, FiDollarSign, FiMessageSquare, FiMic } from 'react-icons/fi';
-=======
-import { FiGrid, FiBook, FiCalendar, FiSettings, FiLogOut, FiHelpCircle, FiCode } from 'react-icons/fi';
->>>>>>> Stashed changes
+import { FiGrid, FiBook, FiCalendar, FiSettings, FiLogOut, FiHelpCircle, FiCode, FiMessageSquare, FiMic, FiDollarSign } from 'react-icons/fi';
 import Navbar from '../components/Navbar';
 
 const StudentDashboardLayout: React.FC = () => {
@@ -30,42 +26,31 @@ const StudentDashboardLayout: React.FC = () => {
       label: 'My Courses',
       path: '/student-dashboard/courses'
     },
-<<<<<<< Updated upstream
-=======
     {
       icon: FiCode,
       label: 'Real-time Projects',
       path: '/student-dashboard/projects'
     },
->>>>>>> Stashed changes
     {
       icon: FiHelpCircle,
       label: 'Trivia',
       path: '/student-dashboard/trivia'
-<<<<<<< Updated upstream
     },
     {
       icon: FiDollarSign,
       label: 'Coin Shop',
-      path: '/student-dashboard/coin-menu'
+      path: '/student-dashboard/coin-shop'
     },
     {
       icon: FiMessageSquare,
       label: 'AI Learning Bot',
-      path: '/teacher/learning-bot'
+      path: '/student-dashboard/learning-bot'
     },
     {
       icon: FiMic,
       label: 'Voice Assistant',
-      path: '/teacher/voice-assistant'
+      path: '/student-dashboard/voice-assistant'
     },
-    {
-      icon: FiSettings,
-      label: 'Settings',
-      path: '/student-dashboard/settings'
-=======
->>>>>>> Stashed changes
-    }
   ];
 
   return (
@@ -82,7 +67,7 @@ const StudentDashboardLayout: React.FC = () => {
                 <button
                   key={item.path}
                   onClick={() => handleNavigation(item.path)}
-                  className={`px-6 py-4 flex items-center text-white/80 hover:bg-ninja-green/10 hover:text-white transition-colors ${
+                  className={`px-6 py-4 flex items-center text-white/80 hover:bg-ninja-green/10 hover:text-white transition-colors w-full text-left ${
                     location.pathname === item.path ? 'bg-ninja-green/10 text-white' : ''
                   }`}
                 >
@@ -102,7 +87,7 @@ const StudentDashboardLayout: React.FC = () => {
           </nav>
         </div>
 
-        {/* Main Content */}
+        {/* Main Content Area - Make sure padding and sizing are correct */}
         <div className="flex-1 ml-64">
           <div className="p-8">
             <Outlet />

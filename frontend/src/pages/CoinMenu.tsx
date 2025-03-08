@@ -242,8 +242,8 @@ const CoinMenu: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-ninja-black p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="bg-ninja-black">
+      <div className="max-w-7xl mx-auto p-8">
         {/* Header Section */}
         <div className="relative mb-16">
           <div className="absolute inset-0 bg-gradient-to-r from-ninja-purple/20 to-ninja-green/20 blur-3xl"></div>
