@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
   FiCalendar, 
@@ -9,7 +9,8 @@ import {
   FiLogOut, 
   FiClock,
   FiUserPlus,
-  FiCheck
+  FiCheck,
+  FiRefreshCw
 } from 'react-icons/fi';
 import { FaRobot, FaMicrophone } from 'react-icons/fa';
 
@@ -60,29 +61,42 @@ const TeacherDashboardPage: React.FC = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [alertEnabled, setAlertEnabled] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
     
-    // Set up polling interval for updates
-    const pollingInterval = setInterval(() => {
-      fetchDashboardData();
-    }, 30000); // Poll every 30 seconds
+    // Only set up polling if autoRefresh is enabled
+    let pollingInterval: number | undefined;
+    
+    if (autoRefresh) {
+      pollingInterval = window.setInterval(() => {
+        fetchDashboardData(false); // Don't show loading indicator for auto-refresh
+      }, 30000); // Poll every 30 seconds
+    }
 
-    // Cleanup polling on unmount
+    // Cleanup polling on unmount or when autoRefresh changes
     return () => {
-      clearInterval(pollingInterval);
+      if (pollingInterval) {
+        window.clearInterval(pollingInterval);
+      }
     };
-  }, []);
+  }, [autoRefresh]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async (showLoadingIndicator = true) => {
     try {
-      setLoading(true);
+      if (showLoadingIndicator) {
+        setLoading(true);
+      } else {
+        setRefreshing(true);
+      }
+      
       const [coursesData, notificationsData] = await Promise.all([
         dashboardService.getCourses(),
         getTeacherNotifications()
@@ -100,8 +114,17 @@ const TeacherDashboardPage: React.FC = () => {
       }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, []);
+
+  const handleManualRefresh = useCallback(() => {
+    fetchDashboardData(false);
+  }, [fetchDashboardData]);
+
+  const toggleAutoRefresh = useCallback(() => {
+    setAutoRefresh(prev => !prev);
+  }, []);
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
@@ -195,17 +218,38 @@ const TeacherDashboardPage: React.FC = () => {
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
         `}>
           <div className="p-4 sm:p-6">
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative w-full px-3 sm:px-4 py-2 bg-ninja-black/50 border border-ninja-white/10 rounded-lg text-ninja-white/80 hover:bg-ninja-green/10 hover:text-ninja-white transition-colors flex items-center justify-between"
-            >
-              <span className="font-monument text-xs sm:text-sm">Notifications</span>
-              {unreadNotifications > 0 && (
-                <span className="bg-ninja-purple text-ninja-black text-xs font-bold px-2 py-1 rounded-full">
-                  {unreadNotifications}
-                </span>
-              )}
-            </button>
+            <div className="flex items-center justify-between mb-4">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative flex-1 px-3 sm:px-4 py-2 bg-ninja-black/50 border border-ninja-white/10 rounded-lg text-ninja-white/80 hover:bg-ninja-green/10 hover:text-ninja-white transition-colors flex items-center justify-between"
+              >
+                <span className="font-monument text-xs sm:text-sm">Notifications</span>
+                {unreadNotifications > 0 && (
+                  <span className="bg-ninja-purple text-ninja-black text-xs font-bold px-2 py-1 rounded-full">
+                    {unreadNotifications}
+                  </span>
+                )}
+              </button>
+              
+              <div className="flex ml-2">
+                <button
+                  onClick={handleManualRefresh}
+                  disabled={refreshing}
+                  className={`p-2 rounded-lg border border-ninja-white/10 ${refreshing ? 'text-ninja-green/50' : 'text-ninja-green hover:bg-ninja-green/10'}`}
+                  title="Refresh dashboard data"
+                >
+                  <FiRefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                </button>
+                
+                <button
+                  onClick={toggleAutoRefresh}
+                  className={`ml-2 p-2 rounded-lg border border-ninja-white/10 ${autoRefresh ? 'bg-ninja-green/20 text-ninja-green' : 'text-ninja-white/60 hover:bg-ninja-green/10 hover:text-ninja-white'}`}
+                  title={autoRefresh ? "Disable auto-refresh" : "Enable auto-refresh (every 30 seconds)"}
+                >
+                  <FiClock className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
 
             {showNotifications && (
               <div className="absolute left-64 top-20 w-72 sm:w-96 bg-ninja-black/95 border border-ninja-white/10 rounded-lg shadow-xl p-4 max-h-[80vh] overflow-y-auto">
@@ -339,8 +383,7 @@ const TeacherDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Overlay f                         h
-      or mobile menu */}
+      {/* Overlay for mobile menu */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 lg:hidden"

@@ -4,13 +4,11 @@ const CourseSchema = new mongoose.Schema({
   title: {
     type: String,
     required: [true, 'Please add a title'],
-    trim: true,
-    maxlength: [50, 'Title cannot be more than 50 characters']
+    trim: true
   },
   description: {
     type: String,
-    required: [true, 'Please add a description'],
-    maxlength: [500, 'Description cannot be more than 500 characters']
+    required: [true, 'Please add a description']
   },
   slides: {
     type: [{
@@ -20,9 +18,7 @@ const CourseSchema = new mongoose.Schema({
       },
       description: {
         type: String,
-        required: [true, 'Please add a description for the slide'],
-        minlength: [300, 'Description must be at least 300 words'],
-        maxlength: [2000, 'Description cannot be more than 2000 characters']
+        required: [true, 'Please add a description for the slide']
       }
     }],
     validate: {

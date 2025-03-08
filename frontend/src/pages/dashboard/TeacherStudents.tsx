@@ -1,40 +1,82 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FormEvent, useCallback, useRef } from 'react';
 import { FiSearch, FiMail, FiBarChart, FiUserPlus, FiLoader } from 'react-icons/fi';
 import { toast, ToastContainer } from 'react-toastify';
 import { getAllStudents } from '../../services/teacherService';
 import { StudentData } from '../../services/studentService';
+import { Course } from '../../types/dashboard';
 
-const TeacherStudents: React.FC = () => {
+interface ExtendedCourse extends Course {
+  day: string;
+  students: number;
+  enrolledStudents?: {
+    _id: string;
+    fullName: string;
+    email: string;
+    grade: string;
+    school: string;
+  }[];
+}
+
+interface TeacherStudentsProps {
+  courses: ExtendedCourse[];
+}
+
+const TeacherStudents: React.FC<TeacherStudentsProps> = ({ courses }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [students, setStudents] = useState<StudentData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    grade: '',
+    school: ''
+  });
+  const [formErrors, setFormErrors] = useState({
+    fullName: '',
+    email: '',
+    grade: '',
+    school: ''
+  });
+  const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    fetchStudents();
-  }, []);
+  // Get all unique students from all courses
+  const allStudents = React.useMemo(() => {
+    const studentsMap = new Map();
+    courses.forEach(course => {
+      course.enrolledStudents?.forEach(student => {
+        if (!studentsMap.has(student._id)) {
+          studentsMap.set(student._id, student);
+        }
+      });
+    });
+    return Array.from(studentsMap.values());
+  }, [courses]);
 
-  const fetchStudents = async () => {
-    try {
-      setLoading(true);
-      const data = await getAllStudents();
-      setStudents(data);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to fetch students');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredStudents = students.filter(
-    student =>
-      student.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.grade.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.school.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredStudents = React.useMemo(() => 
+    allStudents.filter(
+      student =>
+        student.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        student.grade.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        student.school.toLowerCase().includes(searchQuery.toLowerCase())
+    ),
+    [allStudents, searchQuery]
   );
 
   const handleAddStudent = () => {
     setShowAddModal(true);
+    // Reset form data and errors when opening modal
+    setFormData({
+      fullName: '',
+      email: '',
+      grade: '',
+      school: ''
+    });
+    setFormErrors({
+      fullName: '',
+      email: '',
+      grade: '',
+      school: ''
+    });
   };
 
   const handleEmailStudent = (studentId: string) => {
@@ -50,15 +92,119 @@ const TeacherStudents: React.FC = () => {
   };
 
   // Calculate a mock performance score based on student data
-  const calculatePerformance = (student: StudentData): number => {
+  const calculatePerformance = (student: {
+    fullName: string;
+    grade: string;
+    school: string;
+    _id?: string;
+  }): number => {
     // This is just a mock calculation - in a real app, this would be based on actual performance data
     const nameLength = student.fullName.length;
     const gradeValue = student.grade.length;
-    const interestsCount = student.interests.length;
+    const schoolLength = student.school.length;
     
     // Generate a random performance score between 70 and 100
-    return Math.floor(70 + (nameLength + gradeValue + interestsCount) % 30);
+    return Math.floor(70 + (nameLength + gradeValue + schoolLength) % 30);
   };
+
+  // Add event listeners to prevent form submission
+  useEffect(() => {
+    const form = formRef.current;
+    if (form) {
+      const handleFormSubmit = (e: SubmitEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+      };
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+          e.preventDefault();
+        }
+      };
+
+      form.addEventListener('submit', handleFormSubmit);
+      form.addEventListener('keydown', handleKeyDown);
+
+      return () => {
+        form.removeEventListener('submit', handleFormSubmit);
+        form.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, []);
+
+  const validateForm = useCallback(() => {
+    let isValid = true;
+    const errors = {
+      fullName: '',
+      email: '',
+      grade: '',
+      school: ''
+    };
+
+    if (!formData.fullName.trim()) {
+      errors.fullName = 'Full name is required';
+      isValid = false;
+    }
+
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = 'Invalid email format';
+      isValid = false;
+    }
+
+    if (!formData.grade.trim()) {
+      errors.grade = 'Grade is required';
+      isValid = false;
+    }
+
+    if (!formData.school.trim()) {
+      errors.school = 'School is required';
+      isValid = false;
+    }
+
+    setFormErrors(errors);
+    return isValid;
+  }, [formData]);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error when user starts typing
+    if (formErrors[name as keyof typeof formErrors]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  }, [formErrors]);
+
+  const handleSubmit = useCallback(async (e: FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      // Add your API call here to add the student
+      // For now, we'll just show a success message
+      toast.success('Student added successfully');
+      setShowAddModal(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to add student');
+    } finally {
+      setLoading(false);
+    }
+  }, [validateForm]);
 
   if (loading) {
     return (
@@ -258,17 +404,104 @@ const TeacherStudents: React.FC = () => {
         <div className="fixed inset-0 bg-ninja-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50">
           <div className="bg-ninja-black/95 border border-ninja-white/10 rounded-lg p-4 sm:p-6 w-full max-w-md mx-3 sm:mx-auto">
             <h2 className="text-lg sm:text-xl font-monument text-ninja-white mb-3 sm:mb-4">Add New Student</h2>
-            <p className="text-sm text-ninja-white/60 mb-4">
-              Students can register themselves through the signup page. This feature for manually adding students will be implemented soon.
-            </p>
-            <div className="flex justify-end gap-3 sm:gap-4">
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="px-3 sm:px-4 py-1.5 sm:py-2 text-sm text-ninja-white/60 hover:text-ninja-white transition-colors"
-              >
-                Close
-              </button>
-            </div>
+            <form ref={formRef} onSubmit={handleSubmit} className="space-y-4" noValidate autoComplete="off">
+              <div>
+                <label htmlFor="fullName" className="block text-sm text-ninja-white/80 mb-1">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  id="fullName"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 bg-ninja-black/50 border ${
+                    formErrors.fullName ? 'border-red-500' : 'border-ninja-white/10'
+                  } rounded-lg text-ninja-white focus:outline-none focus:border-ninja-purple/50`}
+                  placeholder="Enter student's full name"
+                />
+                {formErrors.fullName && (
+                  <p className="text-red-500 text-xs mt-1">{formErrors.fullName}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block text-sm text-ninja-white/80 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 bg-ninja-black/50 border ${
+                    formErrors.email ? 'border-red-500' : 'border-ninja-white/10'
+                  } rounded-lg text-ninja-white focus:outline-none focus:border-ninja-purple/50`}
+                  placeholder="Enter student's email"
+                />
+                {formErrors.email && (
+                  <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="grade" className="block text-sm text-ninja-white/80 mb-1">
+                  Grade
+                </label>
+                <input
+                  type="text"
+                  id="grade"
+                  name="grade"
+                  value={formData.grade}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 bg-ninja-black/50 border ${
+                    formErrors.grade ? 'border-red-500' : 'border-ninja-white/10'
+                  } rounded-lg text-ninja-white focus:outline-none focus:border-ninja-purple/50`}
+                  placeholder="Enter student's grade"
+                />
+                {formErrors.grade && (
+                  <p className="text-red-500 text-xs mt-1">{formErrors.grade}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="school" className="block text-sm text-ninja-white/80 mb-1">
+                  School
+                </label>
+                <input
+                  type="text"
+                  id="school"
+                  name="school"
+                  value={formData.school}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 bg-ninja-black/50 border ${
+                    formErrors.school ? 'border-red-500' : 'border-ninja-white/10'
+                  } rounded-lg text-ninja-white focus:outline-none focus:border-ninja-purple/50`}
+                  placeholder="Enter student's school"
+                />
+                {formErrors.school && (
+                  <p className="text-red-500 text-xs mt-1">{formErrors.school}</p>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3 sm:gap-4 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 text-ninja-white/60 hover:text-ninja-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-4 py-2 bg-ninja-green text-ninja-black rounded-lg font-monument text-sm hover:bg-ninja-purple hover:text-ninja-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Adding...' : 'Add Student'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

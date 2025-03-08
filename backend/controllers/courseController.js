@@ -9,25 +9,32 @@ const ErrorResponse = require('../utils/errorResponse');
 // @route   POST /api/courses
 // @access  Private (Teacher only)
 exports.createCourse = asyncHandler(async (req, res, next) => {
-  const { title, description, thumbnail, grade, duration } = req.body;
-  
-  // Get teacher ID from authenticated user
-  const teacherId = req.user.id;
-  
-  // Create course
-  const course = await Course.create({
-    title,
-    description,
-    thumbnail,
-    grade,
-    duration,
-    teacher: teacherId
-  });
+  try {
+    console.log("Creating course with data:", req.body);
+    
+    // Get teacher ID from authenticated user
+    const teacherId = req.user.id;
+    
+    // Create course with all fields from request body
+    const courseData = {
+      ...req.body,
+      teacher: teacherId
+    };
+    
+    console.log("Final course data to save:", courseData);
+    
+    const course = await Course.create(courseData);
+    
+    console.log("Course created successfully:", course);
 
-  res.status(201).json({
-    success: true,
-    data: course
-  });
+    res.status(201).json({
+      success: true,
+      data: course
+    });
+  } catch (error) {
+    console.error("Error creating course:", error);
+    return next(new ErrorResponse(error.message || 'Error creating course', 500));
+  }
 });
 
 // @desc    Get all courses

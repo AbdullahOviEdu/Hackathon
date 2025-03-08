@@ -4,9 +4,13 @@ import Calendar from '../../components/Calendar';
 import { dashboardService } from '../../services/dashboardService';
 import { CalendarEvent } from '../../types/dashboard';
 
-const TeacherCalendar: React.FC = () => {
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+interface TeacherCalendarProps {
+  events: CalendarEvent[];
+}
+
+const TeacherCalendar: React.FC<TeacherCalendarProps> = ({ events: initialEvents }) => {
+  const [events, setEvents] = useState<CalendarEvent[]>(initialEvents);
+  const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {

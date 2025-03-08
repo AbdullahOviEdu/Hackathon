@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, FormEvent, useRef, useEffect } from 'react';
 import { FiSearch, FiSend, FiPaperclip } from 'react-icons/fi';
 
 interface Message {
@@ -22,6 +22,7 @@ const TeacherMessages: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');
+  const messageFormRef = useRef<HTMLFormElement>(null);
 
   // Mock chat data
   const chats: Chat[] = [
@@ -78,11 +79,47 @@ const TeacherMessages: React.FC = () => {
     ],
   };
 
-  const handleSendMessage = () => {
+  // Add event listeners to prevent form submission
+  useEffect(() => {
+    const form = messageFormRef.current;
+    if (form) {
+      const handleFormSubmit = (e: SubmitEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+      };
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+          e.preventDefault();
+          handleSendMessage();
+        }
+      };
+
+      form.addEventListener('submit', handleFormSubmit);
+      form.addEventListener('keydown', handleKeyDown);
+
+      return () => {
+        form.removeEventListener('submit', handleFormSubmit);
+        form.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, []);
+
+  const handleSendMessage = useCallback(() => {
     if (!messageInput.trim() || !selectedChat) return;
     console.log('Send message:', messageInput, 'to chat:', selectedChat);
     setMessageInput('');
-  };
+  }, [messageInput, selectedChat]);
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    setSearchQuery(e.target.value);
+  }, []);
+
+  const handleMessageInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    setMessageInput(e.target.value);
+  }, []);
 
   const filteredChats = chats.filter(chat =>
     chat.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -101,7 +138,7 @@ const TeacherMessages: React.FC = () => {
                 type="text"
                 placeholder="Search messages..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchChange}
                 className="w-full pl-10 pr-4 py-2 bg-ninja-black/50 border border-ninja-white/10 rounded-lg text-ninja-white placeholder-ninja-white/40 focus:outline-none focus:border-ninja-green/50"
               />
             </div>
@@ -189,24 +226,27 @@ const TeacherMessages: React.FC = () => {
 
               {/* Message Input */}
               <div className="p-4 border-t border-ninja-white/10">
-                <div className="flex items-center gap-4">
-                  <button className="p-2 text-ninja-white/60 hover:text-ninja-white transition-colors">
+                <form ref={messageFormRef} onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex items-center gap-4">
+                  <button 
+                    type="button" 
+                    className="p-2 text-ninja-white/60 hover:text-ninja-white transition-colors"
+                  >
                     <FiPaperclip className="w-5 h-5" />
                   </button>
                   <input
                     type="text"
                     placeholder="Type a message..."
                     value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
+                    onChange={handleMessageInputChange}
                     className="flex-1 bg-transparent text-ninja-white placeholder-ninja-white/40 focus:outline-none"
                   />
                   <button
-                    onClick={handleSendMessage}
+                    type="submit"
                     className="p-2 text-ninja-green hover:text-ninja-white transition-colors"
                   >
                     <FiSend className="w-5 h-5" />
                   </button>
-                </div>
+                </form>
               </div>
             </>
           ) : (

@@ -3,22 +3,69 @@ import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiClock } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import { getTeacherCourses, deleteCourse, CourseData } from '../../services/courseService';
 import AddCourse from './AddCourse';
+import { Course } from '../../types/dashboard';
 
-const TeacherCourses: React.FC = () => {
-  const [courses, setCourses] = useState<CourseData[]>([]);
-  const [loading, setLoading] = useState(true);
+interface ExtendedCourse extends Course {
+  day: string;
+  students: number;
+  enrolledStudents?: {
+    _id: string;
+    fullName: string;
+    email: string;
+    grade: string;
+    school: string;
+  }[];
+}
+
+interface TeacherCoursesProps {
+  courses: ExtendedCourse[];
+}
+
+const convertCourseDataToExtended = (courseData: CourseData): ExtendedCourse => ({
+  id: courseData._id || '',
+  name: courseData.title,
+  title: courseData.title,
+  class: courseData.class || '',
+  grade: courseData.grade,
+  time: courseData.time || '',
+  meetingLink: courseData.meetingLink || '',
+  description: courseData.description,
+  thumbnail: courseData.thumbnail,
+  duration: courseData.duration,
+  teacher: courseData.teacher,
+  enrolledStudents: courseData.enrolledStudents,
+  day: courseData.day || '',
+  students: courseData.students || 0
+});
+
+const TeacherCourses: React.FC<TeacherCoursesProps> = ({ courses: initialCourses }) => {
+  const [courses, setCourses] = useState<ExtendedCourse[]>(initialCourses);
+  const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCourses();
+    
+    // Check if user is logged in
+    const studentToken = localStorage.getItem('student_token');
+    const teacherToken = localStorage.getItem('teacher_token');
+    console.log("Authentication check on TeacherCourses mount:");
+    console.log("Student token:", studentToken ? "exists" : "not found");
+    console.log("Teacher token:", teacherToken ? "exists" : "not found");
+    
+    if (!studentToken && !teacherToken) {
+      console.log("No token found, setting a test teacher token");
+      localStorage.setItem('teacher_token', 'test_teacher_token');
+      toast.info("Set test teacher token for development");
+    }
   }, []);
 
   const fetchCourses = async () => {
     try {
       setLoading(true);
       const data = await getTeacherCourses();
-      setCourses(data);
+      setCourses(data.map(convertCourseDataToExtended));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to fetch courses');
     } finally {
@@ -27,19 +74,21 @@ const TeacherCourses: React.FC = () => {
   };
 
   const handleAddCourse = () => {
+    console.log("Opening Add Course modal");
     setShowAddModal(true);
   };
 
   const handleCourseAdded = (newCourse: CourseData) => {
-    setCourses(prev => [newCourse, ...prev]);
+    console.log("Course added callback received", newCourse);
+    setCourses(prev => [convertCourseDataToExtended(newCourse), ...prev]);
   };
 
-  const handleDeleteCourse = async (id: string) => {
+  const handleDeleteCourse = async (courseId: string) => {
     if (window.confirm('Are you sure you want to delete this course?')) {
       try {
-        setIsDeleting(id);
-        await deleteCourse(id);
-        setCourses(prev => prev.filter(course => course._id !== id));
+        setIsDeleting(courseId);
+        await deleteCourse(courseId);
+        setCourses(prev => prev.filter(course => course.id !== courseId));
         toast.success('Course deleted successfully');
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Failed to delete course');
@@ -84,7 +133,7 @@ const TeacherCourses: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {courses.map((course) => (
             <div
-              key={course._id}
+              key={course.id}
               className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg overflow-hidden hover:border-ninja-green/30 transition-colors"
             >
               <div className="h-40 sm:h-48 overflow-hidden">
@@ -116,10 +165,10 @@ const TeacherCourses: React.FC = () => {
                   </button>
                   <button
                     className="px-3 py-2 bg-red-500/10 text-red-500 rounded hover:bg-red-500/20 transition-colors"
-                    onClick={() => handleDeleteCourse(course._id!)}
-                    disabled={isDeleting === course._id}
+                    onClick={() => handleDeleteCourse(course.id)}
+                    disabled={isDeleting === course.id}
                   >
-                    {isDeleting === course._id ? (
+                    {isDeleting === course.id ? (
                       <span className="block w-4 h-4 sm:w-5 sm:h-5">...</span>
                     ) : (
                       <FiTrash2 className="w-4 h-4 sm:w-5 sm:h-5" />
