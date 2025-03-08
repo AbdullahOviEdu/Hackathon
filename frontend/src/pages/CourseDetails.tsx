@@ -162,6 +162,34 @@ const CourseDetails: React.FC = () => {
             </div>
           </div>
           
+          {/* Course Slides */}
+          <div className="mt-8">
+            <h2 className="text-xl sm:text-2xl font-monument text-ninja-white mb-6">Course Content</h2>
+            <div className="space-y-8">
+              {course.slides?.map((slide, index) => (
+                <div key={index} className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg overflow-hidden">
+                  <div className="aspect-w-16 aspect-h-9">
+                    <img
+                      src={slide.image}
+                      alt={`Slide ${index + 1}`}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-lg font-monument text-ninja-white mb-4">
+                      Part {index + 1}
+                    </h3>
+                    <div className="prose prose-invert max-w-none">
+                      <p className="text-ninja-white/80 whitespace-pre-wrap">
+                        {slide.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
           {/* Enrollment Card */}
           <div className="lg:col-span-1">
             <div className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg p-4 sm:p-6 sticky top-20 sm:top-28">

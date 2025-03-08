@@ -122,11 +122,7 @@ const Resources: React.FC = () => {
     const userType = localStorage.getItem('user_type');
     const token = localStorage.getItem('student_token');
 
-    if (!token || userType !== 'student') {
-      toast.error('Please sign in as a student to access the resources section');
-      navigate('/signin/student');
-      return;
-    }
+  
 
     // Simulate data loading
     const loadData = async () => {

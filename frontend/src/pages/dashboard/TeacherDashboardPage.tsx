@@ -331,9 +331,9 @@ const TeacherDashboardPage: React.FC = () => {
               </div>
             </div>
           )}
-          {/* {activeTab === 'courses' && <TeacherCourses courses={courses} />}
+          {activeTab === 'courses' && <TeacherCourses courses={courses} />}
           {activeTab === 'calendar' && <TeacherCalendar events={events} />}
-          {activeTab === 'students' && <TeacherStudents courses={courses} />} */}
+          {activeTab === 'students' && <TeacherStudents courses={courses} />}
           {/* {activeTab === 'connections' && <TeacherConnections />} */}
           {activeTab === 'settings' && <Settings />}
         </div>

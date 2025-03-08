@@ -2,6 +2,12 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api/courses';
 
+// Interface for Slide
+export interface Slide {
+  image: string;
+  description: string;
+}
+
 // Interface for Course
 export interface CourseData {
   _id?: string;
@@ -10,7 +16,20 @@ export interface CourseData {
   thumbnail: string;
   grade: string;
   duration: string;
-  teacher?: any;
+  slides: Slide[];
+  teacher?: {
+    _id?: string;
+    fullName: string;
+    institution?: string;
+    subject?: string;
+  };
+  enrolledStudents?: {
+    _id: string;
+    fullName: string;
+    email: string;
+    grade: string;
+    school: string;
+  }[];
   createdAt?: Date;
   meetingLink?: string;
   time?: string;

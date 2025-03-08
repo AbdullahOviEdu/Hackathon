@@ -12,6 +12,27 @@ const CourseSchema = new mongoose.Schema({
     required: [true, 'Please add a description'],
     maxlength: [500, 'Description cannot be more than 500 characters']
   },
+  slides: {
+    type: [{
+      image: {
+        type: String,
+        required: [true, 'Please add an image URL for the slide']
+      },
+      description: {
+        type: String,
+        required: [true, 'Please add a description for the slide'],
+        minlength: [300, 'Description must be at least 300 words'],
+        maxlength: [2000, 'Description cannot be more than 2000 characters']
+      }
+    }],
+    validate: {
+      validator: function(v) {
+        return v.length === 3;
+      },
+      message: 'Course must have exactly 3 slides'
+    },
+    required: [true, 'Please add three slides']
+  },
   thumbnail: {
     type: String,
     required: [true, 'Please add a thumbnail URL']

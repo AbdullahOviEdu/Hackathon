@@ -22,8 +22,6 @@ import TeacherVoiceAssistant from './pages/dashboard/TeacherVoiceAssistant';
 import StudentDashboardLayout from './layouts/StudentDashboardLayout';
 import StudentCourses from './pages/StudentCourses';
 import Trivia from './pages/Trivia';
-import { ThemeProvider } from './context/ThemeContext';
-import ThemeSwitcher from './components/ThemeSwitcher';
 
 const App = () => {
   useEffect(() => {
@@ -31,39 +29,36 @@ const App = () => {
   }, []);
 
   return (
-    <ThemeProvider>
-      <Router>
-        <ToastContainer position="top-right" autoClose={3000} />
-        <ThemeSwitcher />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/signup/student" element={<StudentSignUp />} />
-          <Route path="/signup/teacher" element={<TeacherSignUp />} />
-          <Route path="/signin/student" element={<StudentSignIn />} />
-          <Route path="/signin/teacher" element={<TeacherSignIn />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/resources" element={<Resources />} />
-          <Route path="/courses" element={<Courses />} />
-          <Route path="/course/:id" element={<CourseDetails />} />
-          <Route path="/community" element={<Community />} />
-          
-          {/* Student Dashboard Routes */}
-          <Route path="/student-dashboard" element={<StudentDashboardLayout />}>
-            <Route index element={<StudentDashboard />} />
-            <Route path="courses" element={<StudentCourses />} />
-            <Route path="meetings" element={<Meetings />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="analytics" element={<Analytics />} />
-            <Route path="trivia" element={<Trivia />} />
-          </Route>
+    <Router>
+      <ToastContainer position="top-right" autoClose={3000} />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/signup/student" element={<StudentSignUp />} />
+        <Route path="/signup/teacher" element={<TeacherSignUp />} />
+        <Route path="/signin/student" element={<StudentSignIn />} />
+        <Route path="/signin/teacher" element={<TeacherSignIn />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/resources" element={<Resources />} />
+        <Route path="/courses" element={<Courses />} />
+        <Route path="/course/:id" element={<CourseDetails />} />
+        <Route path="/community" element={<Community />} />
+        
+        {/* Student Dashboard Routes */}
+        <Route path="/student-dashboard" element={<StudentDashboardLayout />}>
+          <Route index element={<StudentDashboard />} />
+          <Route path="courses" element={<StudentCourses />} />
+          <Route path="meetings" element={<Meetings />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="trivia" element={<Trivia />} />
+        </Route>
 
-          {/* Teacher Routes */}
-          <Route path="/teacher/dashboard" element={<TeacherDashboardPage />} />
-          <Route path="/teacher/learning-bot" element={<TeacherLearningBot />} />
-          <Route path="/teacher/voice-assistant" element={<TeacherVoiceAssistant />} />
-        </Routes>
-      </Router>
-    </ThemeProvider>
+        {/* Teacher Routes */}
+        <Route path="/teacher/dashboard" element={<TeacherDashboardPage />} />
+        <Route path="/teacher/learning-bot" element={<TeacherLearningBot />} />
+        <Route path="/teacher/voice-assistant" element={<TeacherVoiceAssistant />} />
+      </Routes>
+    </Router>
   );
 };
 
