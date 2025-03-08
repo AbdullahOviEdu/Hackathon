@@ -76,7 +76,53 @@ const addCoins = async (req, res) => {
   }
 };
 
+// Deduct coins from user
+const deductCoins = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { amount } = req.body;
+    
+    // Validate amount
+    const deductAmount = parseInt(amount);
+    if (isNaN(deductAmount) || deductAmount <= 0) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Invalid deduction amount' 
+      });
+    }
+    
+    let userCoins = await UserCoins.findOne({ userId });
+    
+    if (!userCoins || userCoins.coins < deductAmount) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Insufficient coins' 
+      });
+    }
+    
+    // Deduct coins
+    userCoins.coins -= deductAmount;
+    userCoins.lastUpdated = Date.now();
+    await userCoins.save();
+    
+    console.log(`Deducted ${deductAmount} coins from user. New total: ${userCoins.coins}`);
+    
+    res.json({ 
+      success: true,
+      newBalance: userCoins.coins 
+    });
+  } catch (error) {
+    console.error('Error deducting coins:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Error deducting coins', 
+      error: error.message 
+    });
+  }
+};
+
 module.exports = {
   getUserCoins,
-  addCoins
+  addCoins,
+  deductCoins
 }; 

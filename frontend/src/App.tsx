@@ -22,6 +22,7 @@ import TeacherVoiceAssistant from './pages/dashboard/TeacherVoiceAssistant';
 import StudentDashboardLayout from './layouts/StudentDashboardLayout';
 import StudentCourses from './pages/StudentCourses';
 import Trivia from './pages/Trivia';
+import CoinMenu from './pages/CoinMenu';
 
 const App = () => {
   useEffect(() => {
@@ -51,6 +52,7 @@ const App = () => {
           <Route path="settings" element={<Settings />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="trivia" element={<Trivia />} />
+          <Route path="coin-menu" element={<CoinMenu />} />
         </Route>
 
         {/* Teacher Routes */}

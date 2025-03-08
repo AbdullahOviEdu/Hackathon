@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
-import { FiGrid, FiBook, FiCalendar, FiSettings, FiLogOut, FiHelpCircle } from 'react-icons/fi';
+import { FiGrid, FiBook, FiCalendar, FiSettings, FiLogOut, FiHelpCircle, FiDollarSign, FiMessageSquare, FiMic } from 'react-icons/fi';
 import Navbar from '../components/Navbar';
 
 const StudentDashboardLayout: React.FC = () => {
@@ -26,11 +26,25 @@ const StudentDashboardLayout: React.FC = () => {
       label: 'My Courses',
       path: '/student-dashboard/courses'
     },
-    
     {
       icon: FiHelpCircle,
       label: 'Trivia',
       path: '/student-dashboard/trivia'
+    },
+    {
+      icon: FiDollarSign,
+      label: 'Coin Shop',
+      path: '/student-dashboard/coin-menu'
+    },
+    {
+      icon: FiMessageSquare,
+      label: 'AI Learning Bot',
+      path: '/teacher/learning-bot'
+    },
+    {
+      icon: FiMic,
+      label: 'Voice Assistant',
+      path: '/teacher/voice-assistant'
     },
     {
       icon: FiSettings,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiBook, FiLoader, FiClock, FiCalendar } from 'react-icons/fi';
+import { FiBook, FiLoader, FiClock, FiCalendar, FiX } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import { getEnrolledCourses } from '../services/studentService';
 import { CourseData } from '../services/courseService';
@@ -7,6 +7,8 @@ import { CourseData } from '../services/courseService';
 const StudentCourses: React.FC = () => {
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCourse, setSelectedCourse] = useState<CourseData | null>(null);
+  const [showSlidesModal, setShowSlidesModal] = useState(false);
 
   useEffect(() => {
     fetchEnrolledCourses();
@@ -29,12 +31,24 @@ const StudentCourses: React.FC = () => {
     }
   };
 
-  const handleJoinClass = (meetingLink: string) => {
-    if (!meetingLink || meetingLink === '#') {
-      toast.error('Meeting link not available. Please contact your teacher.');
-      return;
+  const handleJoinClass = (course: CourseData) => {
+    // If the course has a meeting link and the user wants to join the live class
+    if (course.meetingLink && course.meetingLink !== '#') {
+      const joinLive = window.confirm('Would you like to join the live class? Click Cancel to view course slides instead.');
+      if (joinLive) {
+        window.open(course.meetingLink, '_blank');
+        return;
+      }
     }
-    window.open(meetingLink, '_blank');
+    
+    // Show the slides modal
+    setSelectedCourse(course);
+    setShowSlidesModal(true);
+  };
+
+  const closeModal = () => {
+    setShowSlidesModal(false);
+    setSelectedCourse(null);
   };
 
   if (loading) {
@@ -115,11 +129,11 @@ const StudentCourses: React.FC = () => {
 
                 {/* Action Button */}
                 <button
-                  onClick={() => handleJoinClass(course.meetingLink || '#')}
+                  onClick={() => handleJoinClass(course)}
                   className="w-full mt-4 px-4 py-2 bg-ninja-green/10 text-ninja-green text-sm rounded-lg hover:bg-ninja-green hover:text-ninja-black transition-colors flex items-center justify-center"
                 >
                   <FiBook className="mr-2" />
-                  Join Class
+                  Access Course
                 </button>
               </div>
             </div>
@@ -140,6 +154,64 @@ const StudentCourses: React.FC = () => {
           >
             Browse Available Courses
           </a>
+        </div>
+      )}
+
+      {/* Course Slides Modal */}
+      {showSlidesModal && selectedCourse && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-ninja-black border border-ninja-white/10 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-4 sm:p-6 border-b border-ninja-white/10">
+              <h2 className="text-xl font-monument text-ninja-white">{selectedCourse.title} - Course Content</h2>
+              <button 
+                onClick={closeModal}
+                className="text-ninja-white/60 hover:text-ninja-white p-1"
+              >
+                <FiX className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="p-4 sm:p-6">
+              {selectedCourse.slides && selectedCourse.slides.length > 0 ? (
+                <div className="space-y-8">
+                  {selectedCourse.slides.map((slide, index) => (
+                    <div key={index} className="bg-ninja-black/50 border border-ninja-white/10 rounded-lg overflow-hidden">
+                      <div className="aspect-w-16 aspect-h-9">
+                        <img
+                          src={slide.image}
+                          alt={`Slide ${index + 1}`}
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                      <div className="p-6">
+                        <h3 className="text-lg font-monument text-ninja-white mb-4">
+                          Part {index + 1}
+                        </h3>
+                        <div className="prose prose-invert max-w-none">
+                          <p className="text-ninja-white/80 whitespace-pre-wrap">
+                            {slide.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-ninja-white/60">No slides available for this course.</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="p-4 sm:p-6 border-t border-ninja-white/10 flex justify-end">
+              <button
+                onClick={closeModal}
+                className="px-4 py-2 bg-ninja-green/10 text-ninja-green text-sm rounded-lg hover:bg-ninja-green hover:text-ninja-black transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

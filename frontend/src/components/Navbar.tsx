@@ -124,6 +124,12 @@ const Navbar = () => {
     navigate('/');
   };
 
+  const handleCoinClick = () => {
+    if (userType === 'student') {
+      navigate('/student-dashboard/coin-menu');
+    }
+  };
+
   const navLinks = [
     { href: '/', icon: handsPhone1, label: 'Home' },
     { href: '/courses', icon: handsPhone2, label: 'Courses' },
@@ -154,166 +160,143 @@ const Navbar = () => {
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       scrolled ? 'bg-ninja-black/90 backdrop-blur-md shadow-lg' : 'bg-transparent'
     }`}>
-      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16">
-        <div className="flex items-center h-20">
-          {/* Spacer for left side */}
-          <div className="flex-1" />
-          
-          {/* Desktop Menu - Centered */}
-          <div className="hidden md:flex items-center gap-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-20">
+          {/* Logo */}
+          <Link to="/" className="flex items-center">
+            <img src={handsPhone1} alt="Logo" className="h-12 w-auto" />
+            <span className="ml-2 text-2xl font-monument text-white">RizzGuide</span>
+          </Link>
+
+          {/* Navigation Links - Desktop */}
+          <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
-              <NavLink 
-                key={link.label}
-                {...link}
+              <NavLink
+                key={link.href}
+                href={link.href}
+                icon={link.icon}
+                label={link.label}
                 isActive={location.pathname === link.href}
               />
             ))}
-          </div>
 
-          {/* Right side with auth buttons */}
-          <div className="flex-1 flex justify-end gap-2">
-            {userAuthenticated ? (
-              <div className="flex items-center">
-                {userType === 'student' && (
-                  <div className="flex items-center bg-yellow-400/10 px-3 py-2 rounded-full mr-4 cursor-pointer hover:bg-yellow-400/20 transition-colors">
-                    <FaCoins className="text-yellow-400 mr-2" />
-                    <span className="text-white font-semibold">{coins}</span>
-                  </div>
-                )}
-                <div className="relative">
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center space-x-2 text-white hover:text-ninja-green transition-colors"
-                  >
-                    <span>Logout</span>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <DropdownButton 
+            {/* Show coins for authenticated users */}
+            {userAuthenticated && (
+              <button
+                onClick={handleCoinClick}
+                className="flex items-center bg-yellow-400/20 px-4 py-2 rounded-full hover:bg-yellow-400/30 transition-colors"
+              >
+                <FaCoins className="text-yellow-400 mr-2 text-xl" />
+                <span className="text-white font-bold">{coins}</span>
+              </button>
+            )}
+
+            {/* Authentication Buttons */}
+            {!userAuthenticated ? (
+              <div className="flex items-center space-x-4">
+                <DropdownButton
                   label="Sign In"
                   options={signInOptions}
-                  className="hidden md:block px-6 py-2.5 text-ninja-white/80 font-monument text-sm hover:text-ninja-white transition-colors"
+                  className="text-white hover:text-ninja-green"
                 />
-                <DropdownButton 
+                <DropdownButton
                   label="Sign Up"
                   options={signUpOptions}
-                  className="hidden md:block relative px-6 py-2.5 bg-ninja-green text-ninja-black font-monument text-sm rounded-lg overflow-hidden group"
+                  className="bg-ninja-green text-white px-4 py-2 rounded-lg hover:bg-ninja-green/80"
                 />
-              </>
+              </div>
+            ) : (
+              <button
+                onClick={handleLogout}
+                className="text-white hover:text-ninja-green transition-colors"
+              >
+                Logout
+              </button>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button 
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden relative w-10 h-10 flex items-center justify-center"
-          >
-            <div className="relative w-6 flex flex-col gap-1.5">
-              <span className={`w-full h-0.5 bg-ninja-white transform transition-all duration-300 ${
-                isMenuOpen ? 'rotate-45 translate-y-2' : ''
-              }`} />
-              <span className={`w-full h-0.5 bg-ninja-white transition-opacity duration-300 ${
-                isMenuOpen ? 'opacity-0' : ''
-              }`} />
-              <span className={`w-full h-0.5 bg-ninja-white transform transition-all duration-300 ${
-                isMenuOpen ? '-rotate-45 -translate-y-2' : ''
-              }`} />
-            </div>
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        <div className={`md:hidden absolute left-0 right-0 top-full transform transition-all duration-300 ${
-          isMenuOpen 
-            ? 'opacity-100 translate-y-0 visible'
-            : 'opacity-0 -translate-y-4 invisible'
-        }`}>
-          <div className="bg-ninja-black/95 backdrop-blur-md border-t border-b border-ninja-white/10 shadow-xl">
-            <div className="max-w-7xl mx-auto px-4 py-6">
-              <div className="grid grid-cols-2 gap-8 mb-8">
-                {navLinks.map((link, index) => (
-                  <div 
-                    key={link.label} 
-                    className={`transition-all duration-300 transform ${
-                      isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-                    }`} 
-                    style={{ transitionDelay: `${index * 50}ms` }}
-                  >
-                    <NavLink 
-                      {...link}
-                      isActive={location.pathname === link.href}
-                    />
-                  </div>
-                ))}
-              </div>
-              {userAuthenticated ? (
-                <div className="mt-6">
-                  <div className={`transition-all duration-300 transform ${
-                    isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-                  }`} style={{ transitionDelay: `${navLinks.length * 50 + 50}ms` }}>
-                    <button 
-                      onClick={handleLogout}
-                      className="w-full py-3 px-4 bg-ninja-black/30 text-ninja-white/80 font-monument text-sm rounded-lg border border-ninja-white/10 hover:bg-ninja-white/5"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                </div>
+          {/* Mobile menu button */}
+          <div className="md:hidden flex items-center">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-white hover:text-ninja-green"
+            >
+              {isMenuOpen ? (
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               ) : (
-                <div className="mt-6">
-                  {/* Sign In Section */}
-                  <div className={`mb-6 transition-all duration-300 transform ${
-                    isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-                  }`} style={{ transitionDelay: `${navLinks.length * 50 + 50}ms` }}>
-                    <div className="flex items-center mb-3 px-2">
-                      <div className="w-1 h-4 bg-ninja-purple rounded-full mr-2"></div>
-                      <div className="text-ninja-white font-monument text-sm">Sign In</div>
-                    </div>
-                    <div className="bg-ninja-black/30 rounded-lg overflow-hidden border border-ninja-white/5">
-                      {signInOptions.map((option, index) => (
-                        <Link
-                          key={option.label}
-                          to={option.href}
-                          className="flex items-center px-4 py-3 text-sm text-ninja-white/80 hover:bg-ninja-white/5 transition-colors border-b border-ninja-white/5 last:border-b-0 hover:pl-5"
-                          style={{ transitionDelay: `${navLinks.length * 50 + 100 + index * 50}ms` }}
-                        >
-                          <span className="w-2 h-2 bg-ninja-purple/50 rounded-full mr-2"></span>
-                          {option.label}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Sign Up Section */}
-                  <div className={`transition-all duration-300 transform ${
-                    isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-                  }`} style={{ transitionDelay: `${navLinks.length * 50 + 200}ms` }}>
-                    <div className="flex items-center mb-3 px-2">
-                      <div className="w-1 h-4 bg-ninja-green rounded-full mr-2"></div>
-                      <div className="text-ninja-white font-monument text-sm">Sign Up</div>
-                    </div>
-                    <div className="bg-ninja-black/30 rounded-lg overflow-hidden border border-ninja-white/5">
-                      {signUpOptions.map((option, index) => (
-                        <Link
-                          key={option.label}
-                          to={option.href}
-                          className="flex items-center px-4 py-3 text-sm text-ninja-white/80 hover:bg-ninja-white/5 transition-colors border-b border-ninja-white/5 last:border-b-0 hover:pl-5"
-                          style={{ transitionDelay: `${navLinks.length * 50 + 250 + index * 50}ms` }}
-                        >
-                          <span className="w-2 h-2 bg-ninja-green/50 rounded-full mr-2"></span>
-                          {option.label}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
               )}
-            </div>
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Mobile menu */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-ninja-black/95 backdrop-blur-md">
+          <div className="px-2 pt-2 pb-3 space-y-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                to={link.href}
+                className={`block px-3 py-2 rounded-md text-base font-medium ${
+                  location.pathname === link.href
+                    ? 'text-white bg-ninja-green/20'
+                    : 'text-white/70 hover:text-white hover:bg-ninja-green/10'
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+
+            {/* Show coins for authenticated users */}
+            {userAuthenticated && (
+              <button
+                onClick={handleCoinClick}
+                className="w-full flex items-center justify-center bg-yellow-400/20 px-4 py-2 rounded-lg hover:bg-yellow-400/30 transition-colors"
+              >
+                <FaCoins className="text-yellow-400 mr-2 text-xl" />
+                <span className="text-white font-bold">{coins}</span>
+              </button>
+            )}
+
+            {/* Authentication Buttons */}
+            {!userAuthenticated ? (
+              <div className="space-y-2">
+                {signInOptions.map((option) => (
+                  <Link
+                    key={option.href}
+                    to={option.href}
+                    className="block px-3 py-2 rounded-md text-base font-medium text-white hover:text-ninja-green"
+                  >
+                    {option.label}
+                  </Link>
+                ))}
+                {signUpOptions.map((option) => (
+                  <Link
+                    key={option.href}
+                    to={option.href}
+                    className="block px-3 py-2 rounded-md text-base font-medium bg-ninja-green text-white hover:bg-ninja-green/80"
+                  >
+                    {option.label}
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <button
+                onClick={handleLogout}
+                className="block w-full px-3 py-2 rounded-md text-base font-medium text-white hover:text-ninja-green"
+              >
+                Logout
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 };
