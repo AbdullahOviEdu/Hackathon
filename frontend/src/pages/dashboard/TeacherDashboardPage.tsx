@@ -19,7 +19,7 @@ import Calendar from '../../components/Calendar';
 import TeacherCourses from './TeacherCourses';
 import TeacherCalendar from './TeacherCalendar';
 import TeacherStudents from './TeacherStudents';
-import TeacherConnections from './TeacherConnections';
+// import TeacherConnections from './TeacherConnections';
 import Settings from '../Settings';
 
 // Services and Types
@@ -331,15 +331,16 @@ const TeacherDashboardPage: React.FC = () => {
               </div>
             </div>
           )}
-          {activeTab === 'courses' && <TeacherCourses courses={courses} />}
+          {/* {activeTab === 'courses' && <TeacherCourses courses={courses} />}
           {activeTab === 'calendar' && <TeacherCalendar events={events} />}
-          {activeTab === 'students' && <TeacherStudents courses={courses} />}
-          {activeTab === 'connections' && <TeacherConnections />}
+          {activeTab === 'students' && <TeacherStudents courses={courses} />} */}
+          {/* {activeTab === 'connections' && <TeacherConnections />} */}
           {activeTab === 'settings' && <Settings />}
         </div>
       </div>
 
-      {/* Overlay for mobile menu */}
+      {/* Overlay f                         h
+      or mobile menu */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 lg:hidden"

@@ -94,6 +94,7 @@ interface Answer {
   createdAt: string;
   isUserVoted: 'up' | 'down' | null;
   isAccepted: boolean;
+  userId?: string;
 }
 
 interface QuestionFormData {
@@ -476,6 +477,9 @@ const Community = () => {
       return;
     }
 
+    // Store the current state for rollback
+    const stateBackup: Post[] = [...posts];
+
     try {
       // Calculate vote change based on previous vote state
       let voteChange = voteType === 'up' ? 1 : -1;
@@ -486,9 +490,6 @@ const Community = () => {
         // Changing vote from up to down or vice versa
         voteChange = voteType === 'up' ? 2 : -2;
       }
-
-      // Store the current state for rollback
-      const previousState = JSON.parse(JSON.stringify(posts));
 
       // Optimistically update the UI
       setPosts(currentPosts => 
@@ -550,10 +551,45 @@ const Community = () => {
       console.error('Vote error:', error);
       
       // Revert to previous state on error
-      setPosts(previousState);
+      setPosts(stateBackup);
       
       // Show error message
       toast.error(error instanceof Error ? error.message : 'Failed to vote on answer');
+    }
+  };
+
+  const handleDeleteAnswer = async (postId: number, answerId: number) => {
+    if (!isAuthenticated) {
+      navigate('/signin/student');
+      return;
+    }
+
+    // Store the current state for rollback
+    const stateBackup: Post[] = [...posts];
+
+    try {
+      // Optimistically update UI
+      setPosts(currentPosts => 
+        currentPosts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              answers: post.answers.filter(answer => answer.id !== answerId)
+            };
+          }
+          return post;
+        })
+      );
+
+      // Make API call to delete the answer
+      await questionService.deleteAnswer(postId.toString(), answerId.toString());
+      
+      toast.success('Answer deleted successfully');
+    } catch (error) {
+      // Revert to previous state on error
+      setPosts(stateBackup);
+      toast.error('Failed to delete answer');
+      console.error('Error deleting answer:', error);
     }
   };
 
@@ -662,91 +698,126 @@ const Community = () => {
     }
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {posts.map((post) => (
           <div
             key={post.id}
-            className="backdrop-blur-xl bg-white/5 rounded-xl p-6 transition-all duration-500 hover:bg-white/10"
+            className="backdrop-blur-xl bg-white/5 rounded-xl p-4 sm:p-6 transition-all duration-500 hover:bg-white/10"
           >
-            <div className="flex gap-4">
-              {/* Voting */}
-              <div className="flex flex-col items-center gap-2">
+            <div className="flex gap-3 sm:gap-4">
+              {/* Voting - Made more touch-friendly on mobile */}
+              <div className="flex flex-col items-center gap-1 sm:gap-2">
                 <button
                   onClick={() => handleVote(post.id, 'up')}
-                  className={`p-1 rounded ${post.isUserVoted === 'up' ? 'text-ninja-green' : 'text-white/60 hover:text-white'}`}
+                  className={`p-2 rounded-lg ${post.isUserVoted === 'up' ? 'text-ninja-green' : 'text-white/60 hover:text-white'}`}
                 >
-                  ▲
+                  <span className="text-lg sm:text-base">▲</span>
                 </button>
                 <span className={`text-sm font-medium ${post.votes >= 0 ? 'text-ninja-green' : 'text-red-500'}`}>
                   {post.votes}
                 </span>
                 <button
                   onClick={() => handleVote(post.id, 'down')}
-                  className={`p-1 rounded ${post.isUserVoted === 'down' ? 'text-red-500' : 'text-white/60 hover:text-white'}`}
+                  className={`p-2 rounded-lg ${post.isUserVoted === 'down' ? 'text-red-500' : 'text-white/60 hover:text-white'}`}
                 >
-                  ▼
+                  <span className="text-lg sm:text-base">▼</span>
                 </button>
               </div>
 
               {/* Content */}
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-ninja-green to-ninja-purple flex items-center justify-center text-xs">
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-ninja-green to-ninja-purple flex items-center justify-center text-xs flex-shrink-0">
                     {post.avatar}
                   </div>
+                  <span className="text-sm sm:text-base truncate">{post.author}</span>
                 </div>
                 
-                <h3 className="font-monument text-lg mb-2">{post.title}</h3>
-                <p className="text-ninja-white/80 mb-4">{post.content}</p>
+                <h3 className="font-monument text-base sm:text-lg mb-2 line-clamp-2">{post.title}</h3>
+                <p className="text-ninja-white/80 text-sm sm:text-base mb-3 sm:mb-4 line-clamp-3">{post.content}</p>
                 
-                <div className="flex items-center gap-4">
-                  <span className="px-3 py-1 bg-white/5 rounded-full text-xs text-ninja-green">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+                  <span className="px-2 sm:px-3 py-1 bg-white/5 rounded-full text-xs text-ninja-green">
                     {post.category}
                   </span>
-                  <span className="text-sm text-ninja-white/60">
+                  <span className="text-xs sm:text-sm text-ninja-white/60">
                     {post.answers.length} answers
                   </span>
                 </div>
 
                 {/* Answers */}
-                <div className="mt-6 space-y-4">
+                <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4">
                   {post.answers.map((answer) => (
-                    <div key={answer.id} className="pl-8 border-l border-white/10">
-                      <div className="flex gap-4">
+                    <div key={answer.id} className="pl-4 sm:pl-8 border-l border-white/10">
+                      <div className="flex gap-3 sm:gap-4">
                         {/* Answer Voting */}
-                        <div className="flex flex-col items-center gap-2">
+                        <div className="flex flex-col items-center gap-1 sm:gap-2">
                           <button
-                            onClick={() => handleVote(post.id, 'up', true, answer.id)}
-                            className={`p-1 rounded ${answer.isUserVoted === 'up' ? 'text-ninja-green' : 'text-white/60 hover:text-white'}`}
+                            onClick={() => handleVoteAnswer(post.id, answer.id, 'up')}
+                            className={`p-2 rounded-lg ${answer.isUserVoted === 'up' ? 'text-ninja-green' : 'text-white/60 hover:text-white'}`}
                           >
-                            ▲
+                            <span className="text-lg sm:text-base">▲</span>
                           </button>
                           <span className={`text-sm font-medium ${answer.votes >= 0 ? 'text-ninja-green' : 'text-red-500'}`}>
                             {answer.votes}
                           </span>
                           <button
-                            onClick={() => handleVote(post.id, 'down', true, answer.id)}
-                            className={`p-1 rounded ${answer.isUserVoted === 'down' ? 'text-red-500' : 'text-white/60 hover:text-white'}`}
+                            onClick={() => handleVoteAnswer(post.id, answer.id, 'down')}
+                            className={`p-2 rounded-lg ${answer.isUserVoted === 'down' ? 'text-red-500' : 'text-white/60 hover:text-white'}`}
                           >
-                            ▼
+                            <span className="text-lg sm:text-base">▼</span>
                           </button>
                         </div>
 
-                  <div className="flex items-center justify-between text-sm text-white/60">
-                    <div className="flex items-center gap-2">
-                      <img
-                        src={post.avatar}
-                        alt={post.author}
-                        className="w-6 h-6 rounded-full"
-                      />
-                      <span>{post.author}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-ninja-green/50 to-ninja-purple/50 flex items-center justify-center text-xs flex-shrink-0">
+                                {answer.avatar}
+                              </div>
+                              <span className="text-xs sm:text-sm text-white/60 truncate">{answer.author}</span>
+                            </div>
+                            
+                            {/* Delete Button - Only show for answer author */}
+                            <button
+                              onClick={() => {
+                                if (window.confirm('Are you sure you want to delete this answer?')) {
+                                  handleDeleteAnswer(post.id, answer.id);
+                                }
+                              }}
+                              className="text-red-500 hover:text-red-400 text-sm px-2 py-1 rounded-md transition-colors"
+                              title="Delete answer"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                          <p className="text-sm sm:text-base text-ninja-white/80 line-clamp-3">{answer.content}</p>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
+                
+                {/* Reply Button */}
+                {replyingTo === post.id ? (
+                  <ReplyForm
+                    postId={post.id}
+                    onSubmit={(content) => handleReply(post.id, content)}
+                    onCancel={() => setReplyingTo(null)}
+                    isSubmitting={isReplySubmitting}
+                  />
+                ) : (
+                  <button
+                    onClick={() => setReplyingTo(post.id)}
+                    className="mt-3 sm:mt-4 text-ninja-green hover:text-ninja-green/80 text-sm"
+                  >
+                    Reply to this question
+                  </button>
+                )}
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     );
   };
@@ -754,32 +825,220 @@ const Community = () => {
   return (
     <div className="min-h-screen bg-ninja-black text-ninja-white">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-12 sm:pb-16">
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="font-monument text-3xl sm:text-4xl mb-2">Community</h1>
-            <p className="text-white/60">Ask questions, share knowledge, grow together</p>
+            <h1 className="font-monument text-2xl sm:text-3xl md:text-4xl mb-2">Community</h1>
+            <p className="text-white/60 text-sm sm:text-base">Ask questions, share knowledge, grow together</p>
           </div>
-          <button
-            onClick={() => setShowPostForm(true)}
-            className="px-6 py-3 bg-ninja-green text-ninja-black font-monument text-sm rounded-lg hover:bg-ninja-green/90 transition-colors whitespace-nowrap"
+            <button
+              onClick={() => setShowPostForm(true)}
+            className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-ninja-green text-ninja-black font-monument text-sm rounded-lg hover:bg-ninja-green/90 transition-colors whitespace-nowrap"
           >
             Ask Question
           </button>
         </div>
 
-        {/* Main Content */}
-        <QuestionsList />
-      </div>
+        {/* Questions List */}
+        <div className="space-y-4 sm:space-y-6">
+          {posts.map((post) => (
+            <div
+              key={post.id}
+              className="backdrop-blur-xl bg-white/5 rounded-xl p-4 sm:p-6 transition-all duration-500 hover:bg-white/10"
+            >
+              <div className="flex gap-3 sm:gap-4">
+                {/* Voting - Made more touch-friendly on mobile */}
+                <div className="flex flex-col items-center gap-1 sm:gap-2">
+                  <button
+                    onClick={() => handleVote(post.id, 'up')}
+                    className={`p-2 rounded-lg ${post.isUserVoted === 'up' ? 'text-ninja-green' : 'text-white/60 hover:text-white'}`}
+                  >
+                    <span className="text-lg sm:text-base">▲</span>
+                  </button>
+                  <span className={`text-sm font-medium ${post.votes >= 0 ? 'text-ninja-green' : 'text-red-500'}`}>
+                    {post.votes}
+                  </span>
+                  <button
+                    onClick={() => handleVote(post.id, 'down')}
+                    className={`p-2 rounded-lg ${post.isUserVoted === 'down' ? 'text-red-500' : 'text-white/60 hover:text-white'}`}
+                  >
+                    <span className="text-lg sm:text-base">▼</span>
+                  </button>
+                </div>
 
-      {/* Question Form Modal */}
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-ninja-green to-ninja-purple flex items-center justify-center text-xs flex-shrink-0">
+                      {post.avatar}
+                    </div>
+                    <span className="text-sm sm:text-base truncate">{post.author}</span>
+                  </div>
+                  
+                  <h3 className="font-monument text-base sm:text-lg mb-2 line-clamp-2">{post.title}</h3>
+                  <p className="text-ninja-white/80 text-sm sm:text-base mb-3 sm:mb-4 line-clamp-3">{post.content}</p>
+                  
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+                    <span className="px-2 sm:px-3 py-1 bg-white/5 rounded-full text-xs text-ninja-green">
+                      {post.category}
+                    </span>
+                    <span className="text-xs sm:text-sm text-ninja-white/60">
+                      {post.answers.length} answers
+                    </span>
+                  </div>
+
+                  {/* Answers */}
+                  <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4">
+                    {post.answers.map((answer) => (
+                      <div key={answer.id} className="pl-4 sm:pl-8 border-l border-white/10">
+                        <div className="flex gap-3 sm:gap-4">
+                          {/* Answer Voting */}
+                          <div className="flex flex-col items-center gap-1 sm:gap-2">
+                            <button
+                              onClick={() => handleVoteAnswer(post.id, answer.id, 'up')}
+                              className={`p-2 rounded-lg ${answer.isUserVoted === 'up' ? 'text-ninja-green' : 'text-white/60 hover:text-white'}`}
+                            >
+                              <span className="text-lg sm:text-base">▲</span>
+                            </button>
+                            <span className={`text-sm font-medium ${answer.votes >= 0 ? 'text-ninja-green' : 'text-red-500'}`}>
+                              {answer.votes}
+                            </span>
+                            <button
+                              onClick={() => handleVoteAnswer(post.id, answer.id, 'down')}
+                              className={`p-2 rounded-lg ${answer.isUserVoted === 'down' ? 'text-red-500' : 'text-white/60 hover:text-white'}`}
+                            >
+                              <span className="text-lg sm:text-base">▼</span>
+                            </button>
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <div className="flex items-center gap-2">
+                                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-ninja-green/50 to-ninja-purple/50 flex items-center justify-center text-xs flex-shrink-0">
+                                  {answer.avatar}
+                                </div>
+                                <span className="text-xs sm:text-sm text-white/60 truncate">{answer.author}</span>
+                              </div>
+                              
+                              {/* Delete Button - Only show for answer author */}
+                              <button
+                                onClick={() => {
+                                  if (window.confirm('Are you sure you want to delete this answer?')) {
+                                    handleDeleteAnswer(post.id, answer.id);
+                                  }
+                                }}
+                                className="text-red-500 hover:text-red-400 text-sm px-2 py-1 rounded-md transition-colors"
+                                title="Delete answer"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                            <p className="text-sm sm:text-base text-ninja-white/80 line-clamp-3">{answer.content}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Reply Button */}
+                  {replyingTo === post.id ? (
+                    <ReplyForm
+                      postId={post.id}
+                      onSubmit={(content) => handleReply(post.id, content)}
+                      onCancel={() => setReplyingTo(null)}
+                      isSubmitting={isReplySubmitting}
+                    />
+                  ) : (
+                    <button
+                      onClick={() => setReplyingTo(post.id)}
+                      className="mt-3 sm:mt-4 text-ninja-green hover:text-ninja-green/80 text-sm"
+                    >
+                      Reply to this question
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        </div>
+
+      {/* Question Form Modal - Make it more mobile-friendly */}
       {showPostForm && (
-        <QuestionForm
-          onSubmit={handleFormSubmit}
-          onCancel={handleFormCancel}
-          isSubmitting={isSubmitting}
-        />
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-ninja-black/95 p-4 sm:p-6 rounded-xl w-full max-w-2xl mx-auto mt-16 sm:mt-0" onClick={e => e.stopPropagation()}>
+            <h2 className="font-monument text-xl sm:text-2xl mb-4 sm:mb-6">Ask a Question</h2>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              await handleFormSubmit(formData);
+            }}>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="title" className="block text-sm mb-2">Title</label>
+            <input
+                    id="title"
+              type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    className="w-full px-3 sm:px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-ninja-green/50 text-sm sm:text-base"
+                    placeholder="What's your question?"
+                    required
+                    minLength={5}
+                    maxLength={200}
+                  />
+          </div>
+
+                <div>
+                  <label htmlFor="content" className="block text-sm mb-2">Details</label>
+                  <textarea
+                    id="content"
+                    name="content"
+                    value={formData.content}
+                    onChange={handleInputChange}
+                    className="w-full px-3 sm:px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-ninja-green/50 h-32 resize-none text-sm sm:text-base"
+                    placeholder="Provide more details about your question..."
+                    required
+                    minLength={20}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="tags" className="block text-sm mb-2">Tags (optional)</label>
+                  <input
+                    id="tags"
+                    type="text"
+                    name="tags"
+                    value={tagInput}
+                    onChange={handleInputChange}
+                    placeholder="Add tags separated by commas"
+                    className="w-full px-3 sm:px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-ninja-green/50 text-sm sm:text-base"
+                  />
+                  <p className="text-xs text-white/40 mt-1">Separate tags with commas</p>
+          </div>
+
+                <div className="flex justify-end gap-3 sm:gap-4 mt-6">
+                  <button
+                    type="button"
+                    onClick={handleFormCancel}
+                    className="px-4 py-2 text-white/60 hover:text-white text-sm sm:text-base"
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </button>
+              <button
+                    type="submit"
+                    className="px-4 py-2 bg-ninja-green text-ninja-black rounded-lg hover:bg-ninja-green/90 disabled:opacity-50 text-sm sm:text-base"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Posting...' : 'Post Question'}
+              </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

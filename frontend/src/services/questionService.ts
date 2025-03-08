@@ -214,4 +214,13 @@ export const voteAnswer = async (questionId: string, answerId: string, voteType:
 
     throw new Error('Failed to process vote. Please try again.');
   }
+};
+
+export const deleteAnswer = async (questionId: string, answerId: string) => {
+  try {
+    const response = await axiosInstance.delete(`/${questionId}/answers/${answerId}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 }; 
