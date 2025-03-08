@@ -32,11 +32,7 @@ const StudentDashboardLayout: React.FC = () => {
       label: 'Trivia',
       path: '/student-dashboard/trivia'
     },
-    {
-      icon: FiSettings,
-      label: 'Settings',
-      path: '/student-dashboard/settings'
-    }
+    
   ];
 
   return (
